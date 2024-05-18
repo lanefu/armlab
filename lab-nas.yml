@@ -1,0 +1,14 @@
+- hosts:
+  - lab-nas
+
+  tasks:
+    - name: zfs role
+      import_role:
+        name: lanefu.armlab.zfs
+      tags:
+        - zfs
+    - name: cockpit role
+      import_role:
+        name: lanefu.armlab.cockpit
+      tags:
+        - cockpit
