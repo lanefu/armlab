@@ -1,0 +1,4 @@
+---
+collections:
+  - name: https://github.com/lanefu/ansible-collection-armlab.git
+    type: git
