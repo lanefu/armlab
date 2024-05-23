@@ -1,0 +1,48 @@
+---
+
+### will have to do a play per host 
+- hosts:
+  - nasbo
+
+  tasks:
+    - name: destroy nasbo k8s vms
+      community.libvirt.virt:
+        name: "{{ item }}"
+        state: destroyed
+        force: true
+      loop: "{{ groups['nasbo_k8s_nodes']}}"
+      tags:
+        - destroy
+        - kvm
+    - name: undefine nasbo k8s vms
+      community.libvirt.virt:
+        name: "{{ item }}"
+        command: undefine
+        force: true
+      loop: "{{ groups['nasbo_k8s_nodes']}}"
+      tags:
+        - destroy
+        - kvm
+
+- hosts:
+  - ronny-1
+
+  tasks:
+    - name: destroy ronny_1 k8s vms
+      community.libvirt.virt:
+        name: "{{ item }}"
+        state: destroyed
+        force: true
+      loop: "{{ groups['ronny_1_k8s_nodes']}}"
+      tags:
+        - destroy
+        - kvm
+    - name: undefine ronny_1 k8s vms
+      community.libvirt.virt:
+        name: "{{ item }}"
+        command: undefine
+        force: true
+      loop: "{{ groups['ronny_1_k8s_nodes']}}"
+      tags:
+        - destroy
+        - kvm
