@@ -1,0 +1,38 @@
+## kvm-provision vars
+armlab_provision_image_folder: /mnt/zfs/crucial/images 
+armlab_provision_machines_base: /mnt/zfs/crucial/machines
+
+## zfs role vars
+debian_use_backports: no
+debian_release: "trixie"
+debian_headers_package: "linux-headers-edge-rockchip-rk3588"
+zfs_enable_iscsi: no
+zfs_enable_nfs: yes
+zfs_create_pools: yes
+zfs_create_filesystems: yes
+zfs_pools:
+  - name: NVME-SMALL-TANK
+    action: create
+    devices:
+      - nvme-PCIe_SSD_511220920241000311
+      - nvme-PCIe_SSD_511220920241000287
+    type: mirror
+    state: present
+  - name: NVME-BIG-TANK
+    action: create
+    devices:
+      - nvme-CT500P3SSD8_2234E6580C25
+      - nvme-CT500P3SSD8_2234E6580C2A
+    type: mirror
+    state: present
+zfs_filesystems: 
+  - name: crucial
+    pool: NVME-BIG-TANK
+    mountpoint: /mnt/zfs/crucial
+    quota: 100G
+    state: present
+  - name: cheapo
+    pool: NVME-SMALL-TANK
+    mountpoint: /mnt/zfs/cheapo
+    quota: 200G
+    state: present

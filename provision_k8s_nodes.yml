@@ -1,0 +1,38 @@
+---
+
+### will have to do a play per host 
+- hosts:
+  - nasbo
+
+  tasks:
+    - name: build nasbo k8s vms
+      include_role:
+        name: lanefu.armlab.provision_kvm_guest
+      vars:
+        armlab_provision_image_folder: /mnt/zfs/crucial/images
+        armlab_provision_machine_folder: /mnt/zfs/crucial/machines/ksmall
+        armlab_provision_image_size: 40G
+        armlab_provision_hostname: "{{ item }}"
+      loop: "{{ groups['nasbo_k8s_nodes']}}"
+      tags:
+        - provision
+        - kvm
+
+- hosts:
+  - ronny-1
+
+  tasks:
+    - name: build ronny_1 k8s vms
+      include_role:
+        name: lanefu.armlab.provision_kvm_guest
+      vars:
+        armlab_provision_image_folder: /mnt/cheapo/images
+        armlab_provision_machine_folder: /mnt/cheapo/machines/kmedium
+        armlab_provision_image_size: 40G
+        armlab_provision_smp: 4
+        armlab_provision_memory: 4000
+        armlab_provision_hostname: "{{ item }}"
+      loop: "{{ groups['ronny_1_k8s_nodes']}}"
+      tags:
+        - provision
+        - kvm

@@ -1,0 +1,9 @@
+- hosts:
+  - nasbo
+
+  tasks:
+    - name: cockpit role
+      import_role:
+        name: lanefu.armlab.provision_kvm_guest
+      tags:
+        - provision
