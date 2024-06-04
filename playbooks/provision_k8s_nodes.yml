@@ -12,6 +12,7 @@
         armlab_provision_image_folder: /mnt/zfs/crucial/images
         armlab_provision_machine_folder: /mnt/zfs/crucial/machines/ksmall
         armlab_provision_image_size: 40G
+        armlab_provision_base_image: debian-13-generic-arm64-daily.qcow2
         armlab_provision_hostname: "{{ item }}"
       loop: "{{ groups['nasbo_k8s_nodes']}}"
       tags:
