@@ -1,0 +1,20 @@
+---
+
+- hosts:
+  - k3s_nodes
+
+  vars:
+    k3s_become: true
+    k3s_etcd_datastore: true
+    k3s_server:
+      cluster-cidr: 172.31.0.0/16
+
+  tasks:
+
+    - name: provison whole cluster
+      import_role:
+        name: xanmanning.k3s
+      tags:
+        - provison
+        - k3s
+
