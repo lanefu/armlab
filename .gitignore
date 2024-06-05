@@ -4,3 +4,4 @@ venv/
 __pycache__
 .python-version
 vars/local.yml
+tmp/
