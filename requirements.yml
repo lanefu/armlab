@@ -14,6 +14,8 @@ roles:
     version: 4.1.7
   - name: geerlingguy.helm
     version: 1.0.1
+  - name: andrewrothstein.kubectl
+    version: v1.3.6
 collections:
   - name: ansible.posix
   - name: ansible.utils
