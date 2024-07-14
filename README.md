@@ -20,3 +20,26 @@ python3 -m pip install -r requirements.txt
 ansible-galaxy install -r requirements.yml
 ansible-galaxy install -r requirements-armlab.yml 
 ```
+
+## playbooks
+
+### cockpit_vmhost.yml 
+
+Installs qemu, libvirt, and cockpit for deploying virtual machines
+
+### provision_k8s_nodes.yml
+
+Provision a pool of VMs on the VM hosts intended to be used later as k8s control plane
+and worker nodes
+
+### destroy_k8s_nodes.yml
+
+Destroy the VMs Above
+
+### provision_k8s_cluster.yml
+
+Bootstrap a k3s cluster 
+
+### provison_vm.yml
+
+playbook to deploy a single VM
