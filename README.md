@@ -32,6 +32,10 @@ Installs qemu, libvirt, and cockpit for deploying virtual machines
 Provision a pool of VMs on the VM hosts intended to be used later as k8s control plane
 and worker nodes
 
+#### notes for me 
+
+`ansible-playbook playbooks/provision_k8s_nodes.yml -e @vars/local.yml`
+
 ### destroy_k8s_nodes.yml
 
 Destroy the VMs Above
