@@ -1,0 +1,18 @@
+---
+- name: Update packages and reboot
+  hosts:
+    - k3s_nodes
+
+  tasks:
+    - name: Update all packages
+      apt:
+        name: "*"
+        state: latest
+      tags:
+        - apt
+        - udate
+
+    - name: Reboot k3s_nodes
+      reboot:
+      tags:
+        - reboot
