@@ -9,6 +9,10 @@
       cluster-cidr: 172.31.0.0/16
       tls-san:
         - 172.17.20.40
+      disable:
+        - traefik
+        - servicelb
+      #flannel-backend: "'none'"
 
   tasks:
     - name: provison whole cluster

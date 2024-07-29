@@ -1,8 +1,7 @@
 ---
-
-### will have to do a play per host 
+### will have to do a play per host
 - hosts:
-  - nasbo
+    - nasbo
 
   tasks:
     - name: build nasbo k8s vms
@@ -20,7 +19,7 @@
         - kvm
 
 - hosts:
-  - ronny-1
+    - ronny-1
 
   tasks:
     - name: build ronny_1 k8s vms
@@ -30,6 +29,7 @@
         armlab_provision_image_folder: /mnt/cheapo/images
         armlab_provision_machine_folder: /mnt/cheapo/machines/kmedium
         armlab_provision_image_size: 40G
+        armlab_provision_base_image: Armbian-unofficial_24.07.22-armsurvivors-364_Uefi-arm64_bookworm_edge_6.9.10-metadata-cloud.img.qcow2
         armlab_provision_smp: 4
         armlab_provision_memory: 4000
         armlab_provision_hostname: "{{ item }}"
