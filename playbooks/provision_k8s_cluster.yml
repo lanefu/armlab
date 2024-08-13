@@ -12,7 +12,7 @@
       disable:
         - traefik
         - servicelb
-      #flannel-backend: "'none'"
+      flannel-backend: "none"
 
   tasks:
     - name: provison whole cluster

@@ -7,4 +7,5 @@ flux bootstrap git \
   --branch="${FLUX_BRANCH}" \
   --private-key-file="${FLUX_PRIVATE_KEY_FILE}" \
   --path="${FLUX_PATH}" \
+  --network-policy=false \
   --verbose

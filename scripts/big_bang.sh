@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 echo forget about all those old hosts
 for host in ksmall-1 ksmall-2 ksmall-3 kmedium-1 kmedium-2 kmedium-3; do
@@ -19,6 +20,7 @@ echo fetch kubeconfig
 export KUBECONFIG="$(pwd)/kubeconfig"
 kubectl get nodes
 scripts/install_kube-vip_arp.sh
+cilium install
 kubectl -n kube-system get pods
 kubectl apply -f https://raw.githubusercontent.com/inlets/inlets-operator/master/contrib/nginx-sample-deployment.yaml -n default
 kubectl expose deployment nginx-1 --port=80 --type=LoadBalancer -n default --load-balancer-ip=172.17.20.41
