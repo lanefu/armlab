@@ -12,4 +12,5 @@ helm upgrade --install traefik traefik/traefik \
   --set additional.sendAnonymousUsage=false \
   --set dashboard.enable=true \
   --set ingressRoute.dashboard.enabled=true \
+  --set service.spec.externalTrafficPolicy=Cluster \
   --set service.spec.loadBalancerIP=${VIP}
