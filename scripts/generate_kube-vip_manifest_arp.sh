@@ -16,4 +16,5 @@ ${KUBE_VIP_CMD} manifest daemonset \
   --services \
   --arp \
   --leaderElection \
+  --servicesElection yes \
   --enableNodeLabeling yes
