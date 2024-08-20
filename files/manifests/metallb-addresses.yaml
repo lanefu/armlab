@@ -1,0 +1,17 @@
+---
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: ingress-pool
+  namespace: default
+spec:
+  # Production services will go here. Public IPs are expensive, so we leased
+  # just 4 of them.
+  addresses:
+    - 172.17.20.41-172.17.20.50
+---
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: ingress-advertise
+  namespace: default

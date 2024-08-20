@@ -13,8 +13,8 @@ ${KUBE_VIP_CMD} manifest daemonset \
   --inCluster \
   --taint \
   --controlplane \
-  --services \
   --arp \
-  --leaderElection \
-  --servicesElection yes \
   --enableNodeLabeling yes
+#  --leaderElection no \
+#  --servicesElection no \
+#  --services no \

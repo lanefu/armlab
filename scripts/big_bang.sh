@@ -22,7 +22,7 @@ echo fetch kubeconfig
 #./scripts/fetch_kubeconfig.sh ksmall-1 ${VIP}
 export KUBECONFIG="$(pwd)/kubeconfig"
 kubectl get nodes
-scripts/install_kube-vip_arp.sh
+./scripts/install_kube-vip_arp.sh
 cilium install
 kubectl -n kube-system get pods
 kubectl apply -f https://raw.githubusercontent.com/inlets/inlets-operator/master/contrib/nginx-sample-deployment.yaml -n default
@@ -31,4 +31,5 @@ kubectl expose deployment nginx-1 --port=80 --type=LoadBalancer -n default --loa
 ./scripts/bootstrap_flux.sh
 # switch to VIP after cilium bootstrapping is done
 ./scripts/fetch_kubeconfig.sh ksmall-1 ${VIP}
+./scripts/install_metallb.sh
 kubectl get services --all-namespaces
