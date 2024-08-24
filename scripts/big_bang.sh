@@ -13,8 +13,8 @@ ansible-playbook playbooks/provision_k8s_nodes.yml -e @vars/local.yml -u root
 SLEEP_MIN=3
 echo "## wait ${SLEEP_MIN} min for cloud-init dance"
 SLEEP_SEC=$(echo "${SLEEP_MIN} * 60" | bc)
-sleep ${SLEEP_SEC}
-ansible k8s_nodes -m ping
+#sleep ${SLEEP_SEC}
+ansible-playbook playbooks/ping_k8s_nodes.yml
 #ansible-playbook playbooks/update_k8s_nodes.yml --become
 ansible-playbook playbooks/provision_k8s_cluster.yml --become
 echo fetch kubeconfig
@@ -33,3 +33,4 @@ kubectl expose deployment nginx-1 --port=80 --type=LoadBalancer -n default --loa
 ./scripts/fetch_kubeconfig.sh ksmall-1 ${VIP}
 ./scripts/install_metallb.sh
 kubectl get services --all-namespaces
+curl 'http://echo.ktest.angrybear.com' | jq '.request.headers'

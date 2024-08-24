@@ -1,0 +1,7 @@
+---
+- hosts:
+    - k8s_nodes
+  gather_facts: no
+  tasks:
+    - name: Wait for nodes to be online
+      ansible.builtin.wait_for_connection:
