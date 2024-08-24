@@ -1,39 +1,32 @@
 ---
-### will have to do a play per host
 - hosts:
-    - nasbo
+    - ronny_nodes
+  vars:
+    armlab_instance_type:
+      ksmall:
+        size: 25G
+        smp: 2
+        memory: 2000
+      kmedium:
+        size: 40G
+        smp: 4
+        memory: 4000
 
   tasks:
-    - name: build nasbo k8s vms
+    - name: build ronny_k8s vms
       include_role:
         name: lanefu.armlab.provision_kvm_guest
       vars:
-        armlab_provision_image_folder: /mnt/zfs/crucial/images
-        armlab_provision_machine_folder: /mnt/zfs/crucial/machines/ksmall
-        armlab_provision_image_size: 40G
-        armlab_provision_base_image: debian-13-generic-arm64-daily.qcow2
-        armlab_provision_hostname: "{{ item }}"
-      loop: "{{ groups['nasbo_k8s_nodes']}}"
-      tags:
-        - provision
-        - kvm
-
-- hosts:
-    - ronny-1
-
-  tasks:
-    - name: build ronny_1 k8s vms
-      include_role:
-        name: lanefu.armlab.provision_kvm_guest
-      vars:
+        item_instance_type: "{{ hostvars[item].armlab_instance_type }}"
         armlab_provision_image_folder: /mnt/cheapo/images
-        armlab_provision_machine_folder: /mnt/cheapo/machines/kmedium
-        armlab_provision_image_size: 40G
-        armlab_provision_base_image: Armbian-unofficial_24.07.22-armsurvivors-364_Uefi-arm64_bookworm_edge_6.9.10-metadata-cloud.img.qcow2
-        armlab_provision_smp: 4
-        armlab_provision_memory: 4000
+        armlab_provision_machine_folder: /mnt/cheapo/machines/ktest
+        armlab_provision_image_size: "{{ armlab_instance_type[item_instance_type]['size'] }}"
+        #armlab_provision_base_image: Armbian-unofficial_24.07.22-armsurvivors-364_Uefi-arm64_bookworm_edge_6.9.10-metadata-cloud.img.qcow2
+        armlab_provision_base_image: debian-13-generic-arm64-daily.qcow2
+        armlab_provision_smp: "{{ armlab_instance_type[item_instance_type]['smp'] }}"
+        armlab_provision_memory: "{{ armlab_instance_type[item_instance_type]['memory'] }}"
         armlab_provision_hostname: "{{ item }}"
-      loop: "{{ groups['ronny_1_k8s_nodes']}}"
+      loop: "{{ groups[armlab_guest_list] }}"
       tags:
         - provision
         - kvm

@@ -1,22 +1,6 @@
 ---
-
-### will have to do a play per host 
 - hosts:
-  - nasbo
-
-  tasks:
-    - name: destroy nasbo vms
-      include_role:
-        name: lanefu.armlab.destroy_kvm_guest
-      vars:
-        destroy_item: "{{ item }}"
-      loop: "{{ groups['nasbo_k8s_nodes']}}"
-      tags:
-        - destroy
-        - kvm
-
-- hosts:
-  - ronny-1
+    - ronny_nodes
 
   tasks:
     - name: destroy ronny_1 k8s vms
@@ -24,7 +8,7 @@
         name: lanefu.armlab.destroy_kvm_guest
       vars:
         destroy_item: "{{ item }}"
-      loop: "{{ groups['ronny_1_k8s_nodes']}}"
+      loop: "{{ groups[armlab_guest_list]}}"
       tags:
         - destroy
         - kvm
