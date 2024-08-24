@@ -1,6 +1,7 @@
 ---
 - hosts:
     - ronny_nodes
+  strategy: free
   vars:
     armlab_instance_type:
       ksmall:
