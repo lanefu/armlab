@@ -1,0 +1,23 @@
+---
+- hosts:
+    - milddragon
+
+  vars:
+    k3s_become: true
+    k3s_etcd_datastore: true
+    k3s_server:
+      cluster-cidr: 172.31.0.0/16
+      tls-san:
+        - 10.128.1.40
+      disable:
+        - traefik
+        - servicelb
+      flannel-backend: "none"
+
+  tasks:
+    - name: provison whole cluster
+      import_role:
+        name: xanmanning.k3s
+      tags:
+        - provison
+        - k3s

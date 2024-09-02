@@ -1,0 +1,20 @@
+lab_nas:
+  children:
+    milddragon_nodes:
+
+cockpit_vmhost:
+  children:
+    milddragon_nodes:
+
+milddragon_nodes:
+  hosts:
+    milddragon:
+      ansible_host: 10.128.1.122
+
+k8s_nodes:
+  children:
+    milddragon_nodes:
+
+k3s_nodes:
+  children:
+    k8s_nodes:
