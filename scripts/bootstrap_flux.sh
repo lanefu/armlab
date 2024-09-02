@@ -2,7 +2,7 @@
 
 source armlab_flux.conf
 
-flux bootstrap git \
+flux bootstrap git -s \
   --url=${FLUX_REPO_URL} \
   --branch="${FLUX_BRANCH}" \
   --private-key-file="${FLUX_PRIVATE_KEY_FILE}" \

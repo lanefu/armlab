@@ -3,5 +3,8 @@
     - k8s_nodes
   gather_facts: no
   tasks:
+    - name: mDNS reminder
+      debug:
+        msg: "if node is new might need to get dns unstuck with sudo killall -HUP mDNSResponder"
     - name: Wait for nodes to be online
       ansible.builtin.wait_for_connection:

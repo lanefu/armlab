@@ -12,6 +12,14 @@
         size: 40G
         smp: 4
         memory: 4000
+      klarge:
+        size: 60G
+        smp: 6
+        memory: 6000
+      kxlarge:
+        size: 80G
+        smp: 8
+        memory: 8000
 
   tasks:
     - name: build ronny_k8s vms
