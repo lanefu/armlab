@@ -1,0 +1,60 @@
+---
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  creationTimestamp: 2018-07-04T15:03:08Z
+  generation: 1
+  labels:
+    kubevirt.io/os: linux
+  name: fedora-vm3
+spec:
+  running: true
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        kubevirt.io/domain: vm3
+    spec:
+      domain:
+        cpu:
+          cores: 2
+        devices:
+          interfaces:
+            - name: default
+              masquerade: {}
+          disks:
+            - disk:
+                bus: virtio
+              name: disk0
+            - disk:
+                bus: virtio
+                readonly: true
+              name: cloudinitdisk
+        resources:
+          requests:
+            memory: 1024M
+      networks:
+        - name: default
+          pod: {}
+      volumes:
+        - name: disk0
+          persistentVolumeClaim:
+            claimName: fedora
+        - cloudInitNoCloud:
+            networkData: |
+              version: 2
+              ethernets:
+                enp1s0:
+                  addresses: [ fd10:0:2::2/120 ]
+                  dhcp4: true
+                  gateway6: fd10:0:2::1
+            userData: |
+              #cloud-config
+              hostname: vm3
+              password: root
+              chpasswd: { expire: False }
+              ssh_pwauth: True
+              disable_root: false
+              ssh_authorized_keys:
+              - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGAhF7pobuxW0ulzW5nEU2CiC9miWV350/F/+JfeDMXF Its 2021 people have died and its time for a new key
+          name: cloudinitdisk

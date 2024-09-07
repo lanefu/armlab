@@ -1,0 +1,17 @@
+apiVersion: cdi.kubevirt.io/v1beta1
+kind: DataVolume
+metadata:
+  name: "armbian"
+spec:
+  storage:
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: 40Gi
+  source:
+    http:
+      #      url: "https://github.com/armsurvivors/armbian-release/releases/download/24.08.23-armsurvivors-423/Armbian-unofficial_24.08.23-armsurvivors-423_Uefi-x86_bookworm_current_6.6.47-metadata-cloud-k8s-1.30.img.qcow2.xz"
+      # bad # url: "https://github.com/armsurvivors/armbian-release/releases/download/24.08.23-armsurvivors-423/Armbian-unofficial_24.08.23-armsurvivors-423_Uefi-x86_bookworm_edge_6.10.6-metadata-cloud.img.qcow2.xz"
+      #url: "https://github.com/armsurvivors/armbian-release/releases/download/24.08.21-armsurvivors-417/Armbian-unofficial_24.08.21-armsurvivors-417_Uefi-x86_bookworm_edge_6.10.6-metadata-cloud-k8s-1.30.img.qcow2.xz"
+      url: "https://github.com/armsurvivors/armbian-release/releases/download/24.08.23-armsurvivors-423/Armbian-unofficial_24.08.23-armsurvivors-423_Uefi-x86_bookworm_edge_6.10.6-metadata-cloud-k8s-1.30.img.qcow2.xz"

@@ -1,0 +1,79 @@
+---
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  creationTimestamp: 2018-07-04T15:03:08Z
+  generation: 1
+  labels:
+    kubevirt.io/os: linux
+  name: armbian-vm2
+spec:
+  running: true
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        kubevirt.io/domain: vm2
+    spec:
+      domain:
+        cpu:
+          cores: 4
+        devices:
+          interfaces:
+            - name: podnet
+              masquerade: {}
+            - name: hostnetwork
+              bridge: {}
+            #            - name: hostnetwork
+            #              binding:
+            #                name: macvtap
+          disks:
+            - disk:
+                bus: virtio
+              name: disk0
+            - disk:
+                bus: virtio
+                readonly: true
+              name: cloudinitdisk
+        features:
+          acpi: {}
+          smm:
+            enabled: false
+        firmware:
+          bootloader:
+            efi:
+              secureBoot: false
+        resources:
+          requests:
+            memory: 11G
+      networks:
+        - name: podnet
+          pod: {}
+        - name: hostnetwork
+          multus:
+            networkName: bridge-test
+        #        - name: hostnetwork
+        #          multus:
+        #            networkName: macvtapnetwork
+      volumes:
+        - name: disk0
+          persistentVolumeClaim:
+            claimName: armbian
+        - cloudInitNoCloud:
+            networkData: |
+              version: 2
+              ethernets:
+                enp1s0:
+                  addresses: [ fd10:0:2::2/120 ]
+                  dhcp4: true
+                  gateway6: fd10:0:2::1
+            userData: |
+              #cloud-config
+              hostname: vm2
+              password: root
+              chpasswd: { expire: False }
+              ssh_pwauth: True
+              disable_root: false
+              ssh_authorized_keys:
+              - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGAhF7pobuxW0ulzW5nEU2CiC9miWV350/F/+JfeDMXF Its 2021 people have died and its time for a new key
+          name: cloudinitdisk

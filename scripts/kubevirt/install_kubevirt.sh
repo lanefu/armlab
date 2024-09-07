@@ -1,5 +1,19 @@
 #!/bin/bash
 
+##check for crew
+kubectl krew version
+if [ $? -eq 1 ]; then
+  echo "need to install krew see:"
+  echo "https://krew.sigs.k8s.io/docs/user-guide/setup/install/"
+  exit 1
+fi
+
+kubectl virt version
+if [ $? -eq 1 ]; then
+  echo "install virt plugin"
+  kubectl krew install virt
+fi
+
 export VERSION=$(curl -s https://storage.googleapis.com/kubevirt-prow/release/kubevirt/kubevirt/stable.txt)
 echo "install kubevirt operator version ${VERSION}"
 kubectl create -f https://github.com/kubevirt/kubevirt/releases/download/${VERSION}/kubevirt-operator.yaml
@@ -32,4 +46,29 @@ if [ $? -eq 1 ]; then
   exit 1
 fi
 
-kubectl krew install virt
+#set feature gates
+
+kubectl apply -f files/manifests/kubevirt/config/feature_gates.yaml --server-side
+
+#install multus
+
+kubectl apply -f https://raw.githubusercontent.com/k8snetworkplumbingwg/multus-cni/master/deployments/multus-daemonset-thick.yml
+
+function install_mactap_cni() {
+  #install mactap-cni in default
+  kubectl apply -f https://raw.githubusercontent.com/kubevirt/macvtap-cni/main/manifests/macvtap.yaml
+
+  #setup basic bridge requiremnets
+  kubectl apply -f files/manifests/kubevirt/mactap
+
+  #create mactap binding
+  kubectl patch kubevirts -n kubevirt kubevirt --type=json -p='[{"op": "add", "path": "/spec/configuration/network",   "value": {
+            "binding": {
+                "macvtap": {
+                    "domainAttachmentType": "tap"
+                }
+            }
+        }}]'
+}
+
+echo done for now

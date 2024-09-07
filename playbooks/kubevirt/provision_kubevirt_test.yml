@@ -1,5 +1,6 @@
 ---
-- hosts:
+- name: provision kubevirt test instance
+  hosts:
     - milddragon
 
   vars:
@@ -15,7 +16,7 @@
       flannel-backend: "none"
 
   tasks:
-    - name: provison whole cluster
+    - name: Provison whole cluster
       import_role:
         name: xanmanning.k3s
       tags:
