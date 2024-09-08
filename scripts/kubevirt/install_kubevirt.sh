@@ -51,8 +51,16 @@ fi
 kubectl apply -f files/manifests/kubevirt/config/feature_gates.yaml --server-side
 
 #install multus
+function install_multus() {
 
-kubectl apply -f https://raw.githubusercontent.com/k8snetworkplumbingwg/multus-cni/master/deployments/multus-daemonset-thick.yml
+  cilium config set cni-exclusive false
+  kubectl apply -f https://raw.githubusercontent.com/k8snetworkplumbingwg/multus-cni/master/deployments/multus-daemonset-thick.yml
+  ## try k3s way
+  #  helm repo add rke2-charts https://rke2-charts.rancher.io
+  #  helm repo update
+  #  helm install multus rke2-charts/rke2-multus -n kube-system --values files/helm/multus-values.yaml
+
+}
 
 function install_mactap_cni() {
   #install mactap-cni in default
@@ -70,5 +78,8 @@ function install_mactap_cni() {
             }
         }}]'
 }
+
+install_multus
+install_mactap_cni
 
 echo done for now

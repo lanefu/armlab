@@ -67,6 +67,10 @@ spec:
                   addresses: [ fd10:0:2::2/120 ]
                   dhcp4: true
                   gateway6: fd10:0:2::1
+                enp2s0:
+                  dhcp4: true
+                  dhcp4-overrides:
+                    route-metric: 50
             userData: |
               #cloud-config
               hostname: vm2
