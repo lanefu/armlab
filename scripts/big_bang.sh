@@ -4,6 +4,7 @@ set -e
 CONTROL_NODE="ksmall-1"
 VIP=172.17.20.40
 NGINX_VIP=172.17.20.41
+export ANSIBLE_INVENTORY=inventory/hosts.yml
 
 echo forget about all those old hosts
 for host in ksmall-1 ksmall-2 ksmall-3 kmedium-1 kmedium-2 kmedium-3; do
@@ -11,7 +12,7 @@ for host in ksmall-1 ksmall-2 ksmall-3 kmedium-1 kmedium-2 kmedium-3; do
 done
 
 ansible-playbook playbooks/provision_k8s_nodes.yml -e @vars/local.yml -u root
-ansible-playbook playbooks/ping_k8s_nodes.yml
+ansible-playbook playbooks/ping_k8s_nodes.yml -i inventory/hosts.yml
 #ansible-playbook playbooks/update_k8s_nodes.yml --become
 
 ansible-playbook playbooks/provision_k8s_cluster.yml --become
