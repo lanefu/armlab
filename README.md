@@ -53,7 +53,8 @@ playbook to deploy a single VM
 
 ## scripts
 
-I love ansible, but I'm not a purist. I'm extremely prone to lots of wrapper scripts as I experiment things. You'll see me even chain lots of ansible playbooks and commands in my scripts.
+I love ansible, but I'm not a purist. I'm extremely prone to lots of wrapper scripts as I experiment with things.
+You'll see me even chain lots of ansible playbooks and commands in my scripts.
 
 Note: you might see me `source` local config files where I have some "private" configuration values I did't want to upload.. They typically are just defining vars used directly in the script. Easy for you to recreate.
 
