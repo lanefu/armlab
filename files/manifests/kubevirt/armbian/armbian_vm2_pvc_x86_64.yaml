@@ -79,5 +79,5 @@ spec:
               ssh_pwauth: True
               disable_root: false
               ssh_authorized_keys:
-              - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGAhF7pobuxW0ulzW5nEU2CiC9miWV350/F/+JfeDMXF Its 2021 people have died and its time for a new key
+              - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGAhF7pobuxW0ulzW5nEU2CiC9miWV350/F/+JfeDMXF
           name: cloudinitdisk
