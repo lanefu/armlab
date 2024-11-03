@@ -39,4 +39,11 @@ echo change KUBECONFIG to VIP now that cilium bootstrapping is done
 ./scripts/install_metallb.sh
 
 kubectl get services --all-namespaces
-curl 'http://echo.ktest.angrybear.com' | jq '.request.headers'
+
+n=0
+until [ "$n" -ge 15 ]; do
+  curl 'http://echo.ktest.angrybear.com' | jq '.request.headers' && break
+  n=$((n + 1))
+  sleep 2
+  echo "try ${n}: retrying echo server test"
+done
