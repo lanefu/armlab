@@ -1,3 +1,5 @@
+# ansible-playbook -i inventory/hosts.yml playbooks/provision_vm_interactive.yml -u root --extra-vars @vars/local.yml
+
 - hosts:
     - "{{ hypervisor_host }}"
 
@@ -6,6 +8,8 @@
       default: ronny-3
     - name: armlab_provision_hostname
       default: "vm-{{ lookup('community.general.random_string', upper=false, numbers=false, special=false, length=8) }}"
+    - name: armlab_povision_mac_address
+      default: "{{ '52:58:00' | community.general.random_mac(seed=armlab_provision_hostname) }}"
     - name: armlab_provision_image_folder
       default: /mnt/cheapo/images
     - name: armlab_provision_machine_folder
