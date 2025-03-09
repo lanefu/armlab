@@ -4,6 +4,7 @@ set -e
 CONTROL_NODE="ksmall-1"
 VIP=172.17.20.40
 NGINX_VIP=172.17.20.41
+FLUX_CONFIG=armlab_flux.conf
 export ANSIBLE_INVENTORY=inventory/hosts.yml
 
 echo forget about all those old hosts
@@ -31,7 +32,7 @@ kubectl apply -f https://raw.githubusercontent.com/inlets/inlets-operator/master
 kubectl expose deployment nginx-1 --port=80 --type=LoadBalancer -n default --load-balancer-ip=${NGINX_VIP}
 
 ./scripts/install_traefik_with_kube-vip.sh
-./scripts/bootstrap_flux.sh
+./scripts/bootstrap_flux.sh ${FLUX_CONFIG}
 
 echo change KUBECONFIG to VIP now that cilium bootstrapping is done
 ./scripts/fetch_kubeconfig.sh ${CONTROL_NODE} ${VIP}

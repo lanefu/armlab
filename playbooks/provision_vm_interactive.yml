@@ -1,0 +1,27 @@
+- hosts:
+    - "{{ hypervisor_host }}"
+
+  vars_prompt:
+    - name: hypervisor_host
+      default: ronny-3
+    - name: armlab_provision_hostname
+      default: "vm-{{ lookup('community.general.random_string', upper=false, numbers=false, special=false, length=8) }}"
+    - name: armlab_provision_image_folder
+      default: /mnt/cheapo/images
+    - name: armlab_provision_machine_folder
+      default: /mnt/cheapo/machines
+    - name: armlab_provision_image_size
+      default: "40G"
+    - name: armlab_provision_base_image
+      default: debian-12-generic-arm64-daily.qcow2
+    - name: armlab_provision_smp
+      default: "2"
+    - name: armlab_provision_memory
+      default: "2048"
+
+  tasks:
+    - name: "Provision VM: { armlab_provision_hostname }"
+      import_role:
+        name: lanefu.armlab.provision_kvm_guest
+      tags:
+        - provision

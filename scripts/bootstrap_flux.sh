@@ -1,6 +1,15 @@
 #!/bin/bash
 
-source armlab_flux.conf
+if [[ -z ${1} ]]; then
+  echo "error specify config file name"
+  echo "example:"
+  echo "  bootstrap_flux.sh mycluster_flux.conf"
+  exit 1
+fi
+
+FLUX_CONFIG="${1}"
+
+source ${FLUX_CONFIG}
 
 flux bootstrap git -s \
   --url=${FLUX_REPO_URL} \
