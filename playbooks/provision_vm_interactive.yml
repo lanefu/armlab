@@ -6,22 +6,31 @@
   vars_prompt:
     - name: hypervisor_host
       default: ronny-3
+      private: false
     - name: armlab_provision_hostname
       default: "vm-{{ lookup('community.general.random_string', upper=false, numbers=false, special=false, length=8) }}"
+      private: false
     - name: armlab_povision_mac_address
       default: "{{ '52:58:00' | community.general.random_mac(seed=armlab_provision_hostname) }}"
+      private: false
     - name: armlab_provision_image_folder
       default: /mnt/cheapo/images
+      private: false
     - name: armlab_provision_machine_folder
       default: /mnt/cheapo/machines
+      private: false
     - name: armlab_provision_image_size
       default: "40G"
+      private: false
     - name: armlab_provision_base_image
       default: debian-12-generic-arm64-daily.qcow2
+      private: false
     - name: armlab_provision_smp
       default: "2"
+      private: false
     - name: armlab_provision_memory
       default: "2048"
+      private: false
 
   tasks:
     - name: "Provision VM: { armlab_provision_hostname }"
