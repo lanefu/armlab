@@ -1,0 +1,40 @@
+---
+- name: Get Armbian UEFI
+  hosts: ronny_nodes
+  vars:
+    cpu_architecture: arm64
+    distro: trixie
+    download_folder: /mnt/cheapo/images
+
+  tasks:
+    - name: Get latest release from GitHub
+      ansible.builtin.uri:
+        url: https://api.github.com/repos/armbian/os/releases/latest
+        method: GET
+        return_content: true
+      register: latest_release_info
+
+    - name: Set release name
+      ansible.builtin.set_fact:
+        latest_release: "{{ (latest_release_info.content | from_json).tag_name }}"
+
+    - name: Debub info
+      ansible.builtin.debug:
+        msg: "{{ latest_release }}"
+
+    - name: Get artifacts from the latest release
+      ansible.builtin.uri:
+        url: "https://api.github.com/repos/armbian/os/releases/tags/{{ latest_release }}"
+        method: GET
+        return_content: true
+      register: release_assets
+
+    - name: Download image
+      ansible.builtin.get_url:
+        mode: "0640"
+        url: "{{ download_url }}"
+        dest: "{{ download_folder }}/{{ download_url | urlsplit('path') | basename }}"
+      vars:
+        search_pattern: "Armbian_{{ latest_release }}_Uefi-{{ cpu_architecture }}_{{ distro }}_cloud_.*_minimal.img.qcow2$"
+        artifact_url: "{{ (release_assets.content | from_json).assets | map(attribute='browser_download_url') | list }}"
+        download_url: "{{ artifact_url | select('search', search_pattern) | first }}"
