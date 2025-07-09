@@ -1,0 +1,11 @@
+monocluster_nodes:
+  hosts:
+    monocluster:
+
+k8s_nodes:
+  children:
+    monocluster_nodes:
+
+k3s_nodes:
+  children:
+    k8s_nodes:
