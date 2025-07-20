@@ -1,0 +1,7 @@
+---
+
+skip_list:
+  - role-name
+  - fqcn[action-core]
+  - name[template]
+  - name[casing]
