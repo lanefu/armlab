@@ -3,6 +3,8 @@
 - hosts:
     - "{{ hypervisor_host }}"
 
+  vars_files:
+    - ../vars/local.yml
   vars_prompt:
     - name: hypervisor_host
       default: ronny-3

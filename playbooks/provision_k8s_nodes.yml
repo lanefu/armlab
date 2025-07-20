@@ -30,9 +30,10 @@
         armlab_provision_image_folder: /mnt/cheapo/images
         armlab_provision_machine_folder: /mnt/cheapo/machines/ktest
         armlab_provision_image_size: "{{ armlab_instance_type[item_instance_type]['size'] }}"
-        #armlab_provision_base_image: Armbian-unofficial_24.07.22-armsurvivors-364_Uefi-arm64_bookworm_edge_6.9.10-metadata-cloud.img.qcow2
-        #armlab_provision_base_image: debian-13-generic-arm64-daily.qcow2
-        armlab_provision_base_image: debian-12-generic-arm64-daily.qcow2
+        # armlab_provision_base_image: Armbian_25.8.0-trunk.325_Uefi-arm64_trixie_cloud_6.12.36_minimal.img.qcow2
+        armlab_provision_base_image: debian-13-generic-arm64-daily.qcow2
+        # armlab_provision_base_image: debian-12-generic-arm64-daily.qcow2
+        # armlab_provision_base_image: armbian_cloud.img.qcow2
         armlab_provision_smp: "{{ armlab_instance_type[item_instance_type]['smp'] }}"
         armlab_provision_memory: "{{ armlab_instance_type[item_instance_type]['memory'] }}"
         armlab_provision_hostname: "{{ item }}"

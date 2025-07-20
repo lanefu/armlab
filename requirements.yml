@@ -1,7 +1,11 @@
 ---
-roles: 
+roles:
   - name: xanmanning.k3s
-    version: v3.4.4
+    # version: v3.4.4
+    # src: https://github.com/lanefu/ansible-role-k3s.git
+    # version: merge-cgroupsv2-fix
+    src: https://github.com/PyratLabs/ansible-role-k3s.git
+    version: main
   - name: githubixx.iscsi_target
     version: 2.0.0
   - name: githubixx.ansible_role_wireguard
