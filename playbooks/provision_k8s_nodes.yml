@@ -27,16 +27,16 @@
         name: lanefu.armlab.provision_kvm_guest
       vars:
         item_instance_type: "{{ hostvars[item].armlab_instance_type }}"
-        armlab_provision_image_folder: /mnt/cheapo/images
-        armlab_provision_machine_folder: /mnt/cheapo/machines/ktest
-        armlab_provision_image_size: "{{ armlab_instance_type[item_instance_type]['size'] }}"
-        # armlab_provision_base_image: Armbian_25.8.0-trunk.325_Uefi-arm64_trixie_cloud_6.12.36_minimal.img.qcow2
-        armlab_provision_base_image: debian-13-generic-arm64-daily.qcow2
-        # armlab_provision_base_image: debian-12-generic-arm64-daily.qcow2
-        # armlab_provision_base_image: armbian_cloud.img.qcow2
-        armlab_provision_smp: "{{ armlab_instance_type[item_instance_type]['smp'] }}"
-        armlab_provision_memory: "{{ armlab_instance_type[item_instance_type]['memory'] }}"
-        armlab_provision_hostname: "{{ item }}"
+        provision_kvm_guest_image_folder: /mnt/cheapo/images
+        provision_kvm_guest_machine_folder: /mnt/cheapo/machines/ktest
+        provision_kvm_guest_image_size: "{{ armlab_instance_type[item_instance_type]['size'] }}"
+        # provision_kvm_guest_base_image: Armbian_25.8.0-trunk.325_Uefi-arm64_trixie_cloud_6.12.36_minimal.img.qcow2
+        provision_kvm_guest_base_image: debian-13-generic-arm64-daily.qcow2
+        # provision_kvm_guest_base_image: debian-12-generic-arm64-daily.qcow2
+        # provision_kvm_guest_base_image: armbian_cloud.img.qcow2
+        provision_kvm_guest_smp: "{{ armlab_instance_type[item_instance_type]['smp'] }}"
+        provision_kvm_guest_memory: "{{ armlab_instance_type[item_instance_type]['memory'] }}"
+        provision_kvm_guest_hostname: "{{ item }}"
       loop: "{{ groups[armlab_guest_list] }}"
       tags:
         - provision

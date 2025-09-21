@@ -9,33 +9,33 @@
     - name: hypervisor_host
       default: ronny-3
       private: false
-    - name: armlab_provision_hostname
+    - name: provision_kvm_guest_hostname
       default: "vm-{{ lookup('community.general.random_string', upper=false, numbers=false, special=false, length=8) }}"
       private: false
     - name: armlab_povision_mac_address
-      default: "{{ '52:58:00' | community.general.random_mac(seed=armlab_provision_hostname) }}"
+      default: "{{ '52:58:00' | community.general.random_mac(seed=provision_kvm_guest_hostname) }}"
       private: false
-    - name: armlab_provision_image_folder
+    - name: provision_kvm_guest_image_folder
       default: /mnt/cheapo/images
       private: false
-    - name: armlab_provision_machine_folder
+    - name: provision_kvm_guest_machine_folder
       default: /mnt/cheapo/machines
       private: false
-    - name: armlab_provision_image_size
+    - name: provision_kvm_guest_image_size
       default: "40G"
       private: false
-    - name: armlab_provision_base_image
+    - name: provision_kvm_guest_base_image
       default: debian-12-generic-arm64-daily.qcow2
       private: false
-    - name: armlab_provision_smp
+    - name: provision_kvm_guest_smp
       default: "2"
       private: false
-    - name: armlab_provision_memory
+    - name: provision_kvm_guest_memory
       default: "2048"
       private: false
 
   tasks:
-    - name: "Provision VM: { armlab_provision_hostname }"
+    - name: "Provision VM: { provision_kvm_guest_hostname }"
       import_role:
         name: lanefu.armlab.provision_kvm_guest
       tags:
