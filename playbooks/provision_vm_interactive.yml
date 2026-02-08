@@ -12,7 +12,7 @@
     - name: provision_kvm_guest_hostname
       default: "vm-{{ lookup('community.general.random_string', upper=false, numbers=false, special=false, length=8) }}"
       private: false
-    - name: armlab_povision_mac_address
+    - name: provision_kvm_guest_mac_address
       default: "{{ '52:58:00' | community.general.random_mac(seed=provision_kvm_guest_hostname) }}"
       private: false
     - name: provision_kvm_guest_image_folder
@@ -25,13 +25,16 @@
       default: "40G"
       private: false
     - name: provision_kvm_guest_base_image
-      default: debian-12-generic-arm64-daily.qcow2
+      default: debian-13-generic-arm64-daily.qcow2
       private: false
     - name: provision_kvm_guest_smp
       default: "2"
       private: false
     - name: provision_kvm_guest_memory
       default: "2048"
+      private: false
+    - name: provision_kvm_guest_network_bridge
+      default: "default"
       private: false
 
   tasks:
