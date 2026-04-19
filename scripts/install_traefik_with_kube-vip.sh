@@ -12,7 +12,7 @@ helm upgrade --install traefik traefik/traefik \
   --set api.dashboard=true \
   --set ingressRoute.dashboard.enabled=true \
   --set service.spec.externalTrafficPolicy=Local \
-  --set service.loadBalancerIP=${VIP}
+  --set service.spec.loadBalancerClass=io.cilium/bgp-control-plane \
+  --set service.spec.loadBalancerIP=${VIP}
 
-kubectl patch service traefik -n ${NAMESPACE} --type merge -p '{"spec":{"loadBalancerClass":"io.cilium/bgp-control-plane"}}'
 kubectl label service traefik -n ${NAMESPACE} bgp.armlab.io/service=true --overwrite

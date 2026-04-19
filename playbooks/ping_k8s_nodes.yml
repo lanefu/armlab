@@ -6,5 +6,11 @@
     - name: local resolver fallback reminder
       debug:
         msg: "if a newly provisioned node only fails locally, you may need to flush mDNS with sudo killall -HUP mDNSResponder"
-    - name: Wait for nodes to be online
+    - name: show resolved node target
+      debug:
+        msg: "{{ inventory_hostname }} -> {{ ansible_host | default(inventory_hostname) }}"
+
+    - name: wait for nodes to be online
       ansible.builtin.wait_for_connection:
+        timeout: 1800
+        sleep: 5

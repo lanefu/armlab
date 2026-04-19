@@ -14,6 +14,11 @@
         - traefik
         - servicelb
       flannel-backend: "none"
+      node-label:
+        - bgp-node=true
+    k3s_agent:
+      node-label:
+        - bgp-node=true
 
   tasks:
     - name: provison whole cluster

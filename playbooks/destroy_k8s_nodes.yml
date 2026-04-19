@@ -9,7 +9,7 @@
         name: lanefu.armlab.destroy_kvm_guest
       vars:
         destroy_item: "{{ item }}"
-      loop: "{{ groups[armlab_guest_list]}}"
+      loop: "{{ groups[armlab_guest_list] }}"
       tags:
         - destroy
         - kvm
