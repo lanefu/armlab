@@ -1,0 +1,59 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumLoadBalancerIPPool
+metadata:
+  name: armlab-service-pool
+spec:
+  blocks:
+    - cidr: 172.17.28.0/28
+  serviceSelector:
+    matchLabels:
+      bgp.armlab.io/service: "true"
+---
+apiVersion: cilium.io/v2
+kind: CiliumBGPPeerConfig
+metadata:
+  name: armlab-bgp-peer
+  labels:
+    bgp.armlab.io/advertise: "true"
+spec:
+  families:
+    - afi: ipv4
+      safi: unicast
+      advertisements:
+        matchLabels:
+          bgp.armlab.io/advertise: "true"
+---
+apiVersion: cilium.io/v2
+kind: CiliumBGPClusterConfig
+metadata:
+  name: armlab-bgp
+spec:
+  nodeSelector:
+    matchLabels:
+      bgp-node: "true"
+  bgpInstances:
+    - name: armlab-router
+      localASN: 64513
+      peers:
+        - name: clammy-ng
+          peerASN: 64512
+          peerAddress: 172.17.20.1
+          peerConfigRef:
+            name: armlab-bgp-peer
+---
+apiVersion: cilium.io/v2
+kind: CiliumBGPAdvertisement
+metadata:
+  name: armlab-lb-services
+  labels:
+    bgp.armlab.io/advertise: "true"
+spec:
+  advertisements:
+    - advertisementType: Service
+      service:
+        addresses:
+          - LoadBalancerIP
+      selector:
+        matchLabels:
+          bgp.armlab.io/service: "true"

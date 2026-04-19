@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VIP=172.17.20.42
+VIP=172.17.28.2
 NAMESPACE=default
 
 #helm repo add traefik https://helm.traefik.io/traefik
@@ -8,9 +8,11 @@ NAMESPACE=default
 
 helm upgrade --install traefik traefik/traefik \
   --namespace ${NAMESPACE} \
-  --set additional.checkNewVersion=false \
-  --set additional.sendAnonymousUsage=false \
-  --set dashboard.enable=true \
+  --create-namespace \
+  --set api.dashboard=true \
   --set ingressRoute.dashboard.enabled=true \
   --set service.spec.externalTrafficPolicy=Local \
-  --set service.spec.loadBalancerIP=${VIP}
+  --set service.loadBalancerIP=${VIP}
+
+kubectl patch service traefik -n ${NAMESPACE} --type merge -p '{"spec":{"loadBalancerClass":"io.cilium/bgp-control-plane"}}'
+kubectl label service traefik -n ${NAMESPACE} bgp.armlab.io/service=true --overwrite
