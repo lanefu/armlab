@@ -6,3 +6,13 @@ __pycache__
 vars/local.yml
 tmp/
 .env/
+
+# Local generated artifacts
+.config/starship.toml
+armlab_flux.conf
+armlab_kubevirt_test.conf
+assets.json
+debug.yml
+kubeconfig
+kubeconfig-kubevirt
+latest.json
