@@ -61,5 +61,15 @@ Note: you might see me `source` local config files where I have some "private" c
 Interesting things in my scripts folder:
 
 - `scripts/big_bang.sh` - soup to nuts deployment of my test k3s cluster from VM creation to fluxcd installation. Good one to look at
+- `scripts/1password_connect_prep.sh` - seeds the `external-secrets` namespace with 1Password Connect credentials and token data
+  - `apply` mode is for repeated bootstrap runs with `OP_SERVICE_ACCOUNT_TOKEN`
+  - `init` mode is the one-time Connect setup path for when you create or rotate the Connect server
+  - `rotate-token` reissues the Connect token and reseeds Kubernetes
+  - `EMPIRE/scripts/armlab_big_bang.sh` will source `EMPIRE/.env` if it exists
+  - put `OP_SERVICE_ACCOUNT_TOKEN=...` in that env file and keep it `chmod 600`
+  - example:
+    ```bash
+    OP_SERVICE_ACCOUNT_TOKEN=opsa_...
+    ```
 - `scripts/fetch_kubeconfig.sh` - fetch kubeconfig from cluster cluster node and prepare for local use by updating API endpoint
 - `scripts/kubevirt/` - scripts I used for experimenting with kubevirt bootstrapping. Currently targeted at x86 instead of ARM :P

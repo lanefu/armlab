@@ -1,23 +1,55 @@
 ---
-- hosts: "{{ hypervisor_host | default('ronny-1') }}"
+- hosts: "{{ hypervisor_host | default(router_lab_hypervisor_host | default('ronny-1')) }}"
+  vars_files:
+    - ../vars/local.yml
+  vars:
+    router_lab_image_folder_default: /mnt/cheapo/images
+    router_lab_machine_folder_default: /mnt/cheapo/machines/ktest
+    router_lab_base_image_default: debian-13-generic-arm64-daily.qcow2
+    router_lab_image_format_default: qcow2
+    router_lab_image_size_default: 20G
+    router_lab_smp_default: 2
+    router_lab_memory_default: 2048
+    router_lab_generate_cloud_init_iso_default: false
+    router_lab_extra_bridge_default: bridge1004
   tasks:
-    - name: "Provision {{ test_vm_hostname | default('router-test-1') }}"
+    - name: capture shared router lab defaults from vars/local.yml
+      set_fact:
+        router_lab_nocloud_url_default: "{{ provision_kvm_guest_nocloud_url }}"
+        router_lab_primary_bridge_default: "{{ provision_kvm_guest_network_bridge }}"
+
+    - name: normalize router lab topology
+      set_fact:
+        router_lab_effective_vms: >-
+          {{
+            router_lab_vms
+              | default([
+                  {
+                    'hostname': test_vm_hostname | default('router-test-1'),
+                    'primary_bridge': router_lab_primary_bridge_default,
+                    'extra_nics': [{'bridge': router_lab_extra_bridge_default}]
+                  }
+                ], true)
+          }}
+
+    - name: provision router lab guests
       include_role:
         name: lanefu.armlab.provision_kvm_guest
       vars:
-        provision_kvm_guest_hostname: "{{ test_vm_hostname | default('router-test-1') }}"
-        provision_kvm_guest_image_folder: /mnt/cheapo/images
-        provision_kvm_guest_machine_folder: /mnt/cheapo/machines/ktest
-        provision_kvm_guest_base_image: debian-13-generic-arm64-daily.qcow2
-        provision_kvm_guest_image_file: "{{ test_vm_hostname | default('router-test-1') }}.img.qcow2"
-        provision_kvm_guest_image_format: qcow2
-        provision_kvm_guest_image_size: 20G
-        provision_kvm_guest_smp: 2
-        provision_kvm_guest_memory: 2048
-        provision_kvm_guest_mac_address: "{{ '52:54:00' | community.general.random_mac(seed=test_vm_hostname | default('router-test-1')) }}"
-        provision_kvm_guest_network_bridge: bridge0
-        provision_kvm_guest_extra_nics:
-          - bridge: "{{ extra_bridge | default('bridge1004') }}"
-        provision_kvm_guest_generate_cloud_init_iso: false
-        provision_kvm_guest_nocloud_url: https://www.lane-fu.com/qemu-nocloud/lanecloud/
-        provision_kvm_guest_instance_id: "{{ test_vm_hostname | default('router-test-1') }}-uuid"
+        provision_kvm_guest_hostname: "{{ item.hostname }}"
+        provision_kvm_guest_image_folder: "{{ item.image_folder | default(router_lab_image_folder_default) }}"
+        provision_kvm_guest_machine_folder: "{{ item.machine_folder | default(router_lab_machine_folder_default) }}"
+        provision_kvm_guest_base_image: "{{ item.base_image | default(router_lab_base_image_default) }}"
+        provision_kvm_guest_image_file: "{{ item.image_file | default(item.hostname ~ '.img.qcow2') }}"
+        provision_kvm_guest_image_format: "{{ item.image_format | default(router_lab_image_format_default) }}"
+        provision_kvm_guest_image_size: "{{ item.image_size | default(router_lab_image_size_default) }}"
+        provision_kvm_guest_smp: "{{ item.smp | default(router_lab_smp_default) }}"
+        provision_kvm_guest_memory: "{{ item.memory | default(router_lab_memory_default) }}"
+        provision_kvm_guest_network_bridge: "{{ item.primary_bridge | default(router_lab_primary_bridge_default) }}"
+        provision_kvm_guest_extra_nics: "{{ item.extra_nics | default([{'bridge': router_lab_extra_bridge_default}]) }}"
+        provision_kvm_guest_generate_cloud_init_iso: "{{ item.generate_cloud_init_iso | default(router_lab_generate_cloud_init_iso_default) }}"
+        provision_kvm_guest_nocloud_url: "{{ item.nocloud_url | default(router_lab_nocloud_url_default) }}"
+        provision_kvm_guest_instance_id: "{{ item.instance_id | default(item.hostname ~ '-uuid') }}"
+      loop: "{{ router_lab_effective_vms }}"
+      loop_control:
+        label: "{{ item.hostname }}"

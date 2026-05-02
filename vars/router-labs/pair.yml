@@ -1,0 +1,17 @@
+---
+# Opinionated 2-VM router lab:
+# - router-test-1 acts as the router
+# - router-peer-1 acts as a downstream host on the same experimental LAN
+# - bridge1005 gives the router a second experimental segment for uplink or
+#   route-policy experiments without touching production VLANs
+router_lab_hypervisor_host: ronny-1
+router_lab_vms:
+  - hostname: router-test-1
+    primary_bridge: bridge0
+    extra_nics:
+      - bridge: bridge1004
+      - bridge: bridge1005
+  - hostname: router-peer-1
+    primary_bridge: bridge0
+    extra_nics:
+      - bridge: bridge1004

@@ -1,8 +1,23 @@
 ---
-- hosts: "{{ hypervisor_host | default('ronny-1') }}"
+- hosts: "{{ hypervisor_host | default(router_lab_hypervisor_host | default('ronny-1')) }}"
   tasks:
-    - name: "Destroy VM: {{ test_vm_hostname | default('router-test-1') }}"
+    - name: normalize router lab topology
+      set_fact:
+        router_lab_effective_vms: >-
+          {{
+            router_lab_vms
+              | default([
+                  {
+                    'hostname': test_vm_hostname | default('router-test-1')
+                  }
+                ], true)
+          }}
+
+    - name: destroy router lab guests
       include_role:
         name: lanefu.armlab.destroy_kvm_guest
       vars:
-        destroy_item: "{{ test_vm_hostname | default('router-test-1') }}"
+        destroy_item: "{{ item.hostname }}"
+      loop: "{{ router_lab_effective_vms }}"
+      loop_control:
+        label: "{{ item.hostname }}"

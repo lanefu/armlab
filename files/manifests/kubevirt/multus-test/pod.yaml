@@ -1,0 +1,20 @@
+# sample-pod.yaml
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: sample-pod
+  namespace: default
+  annotations:
+    k8s.v1.cni.cncf.io/networks: |
+      [{
+        "name": "multus-iot",
+        "namespace": "default",
+        "mac": "c6:5e:a4:8e:7a:59",
+        "ips": ["10.128.1.44/24"]
+      }]
+spec:
+  containers:
+    - name: sample-pod
+      command: ["/bin/bash", "-c", "trap : TERM INT; sleep infinity & wait"]
+      image: debian

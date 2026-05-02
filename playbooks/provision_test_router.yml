@@ -1,0 +1,20 @@
+---
+- hosts: ronny-1
+  tasks:
+    - name: provision test-router-1
+      include_role:
+        name: lanefu.armlab.provision_kvm_guest
+      vars:
+        provision_kvm_guest_hostname: "{{ test_vm_hostname }}"
+        provision_kvm_guest_image_folder: /mnt/cheapo/images
+        provision_kvm_guest_machine_folder: /mnt/cheapo/machines/ktest
+        provision_kvm_guest_image_file: "{{ test_vm_hostname }}.img.qcow2"
+        provision_kvm_guest_image_format: qcow2
+        provision_kvm_guest_image_size: 20G
+        provision_kvm_guest_smp: 2
+        provision_kvm_guest_memory: 2048
+        provision_kvm_guest_mac_address: "{{ test_vm_mac }}"
+        provision_kvm_guest_network_bridge: bridge0
+        provision_kvm_guest_nocloud_url: https://www.lane-fu.com/qemu-nocloud/lanecloud/
+        provision_kvm_guest_instance_id: "{{ test_vm_hostname }}-uuid"
+

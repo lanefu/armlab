@@ -1,0 +1,7 @@
+---
+router_lab_hypervisor_host: ronny-1
+router_lab_vms:
+  - hostname: router-test-1
+    primary_bridge: bridge0
+    extra_nics:
+      - bridge: bridge1004
