@@ -16,3 +16,4 @@ debug.yml
 kubeconfig
 kubeconfig-kubevirt
 latest.json
+files/manifests/kube-vip_daemonset.yaml

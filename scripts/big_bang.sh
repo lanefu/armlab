@@ -3,9 +3,11 @@ set -e
 
 CONTROL_NODE="ksmall-1"
 VIP=172.17.20.40
+INTERFACE=enp1s0
 NGINX_VIP=172.17.20.41
 FLUX_CONFIG=armlab_flux.conf
 export ANSIBLE_INVENTORY=inventory/hosts.yml
+export VIP INTERFACE
 
 echo forget about all those old hosts
 for host in ksmall-1 ksmall-2 ksmall-3 kmedium-1 kmedium-2 kmedium-3; do
@@ -24,6 +26,8 @@ export KUBECONFIG="$(pwd)/kubeconfig"
 kubectl get nodes
 
 ./scripts/install_kube-vip_arp.sh
+echo switching KUBECONFIG to VIP before cilium
+./scripts/fetch_kubeconfig.sh ${CONTROL_NODE} ${VIP}
 cilium install
 
 kubectl -n kube-system get pods
@@ -33,9 +37,6 @@ kubectl expose deployment nginx-1 --port=80 --type=LoadBalancer -n default --loa
 
 ./scripts/install_traefik_with_kube-vip.sh
 ./scripts/bootstrap_flux.sh ${FLUX_CONFIG}
-
-echo change KUBECONFIG to VIP now that cilium bootstrapping is done
-./scripts/fetch_kubeconfig.sh ${CONTROL_NODE} ${VIP}
 
 ./scripts/install_metallb.sh
 

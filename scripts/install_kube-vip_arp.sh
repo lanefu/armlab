@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# generation tool requires docker so lets just skip if it exists to same time
+# generating this needs docker, which is annoying, so only do it when the manifest is missing
 if [ ! -f files/manifests/kube-vip_daemonset.yaml ]; then
   ./scripts/generate_kube-vip_manifest_arp.sh >files/manifests/kube-vip_daemonset.yaml
 fi
