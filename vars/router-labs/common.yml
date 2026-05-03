@@ -1,0 +1,10 @@
+---
+# Shared router-lab inputs used to render static cloud-init payloads locally.
+# Keep the SSH key source configurable through the local workspace by default.
+router_lab_management_address: 172.17.20.90
+router_lab_management_gateway: 172.17.20.1
+router_lab_dns_nameservers:
+  - 1.1.1.1
+  - 8.8.8.8
+router_lab_ssh_authorized_keys:
+  - "{{ lookup('file', lookup('env', 'HOME') ~ '/.ssh/lane_2021.key.pub') }}"

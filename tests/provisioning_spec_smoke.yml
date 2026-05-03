@@ -27,6 +27,82 @@
           - armlab_vm_spec.nocloud_url == provision_kvm_guest_nocloud_url
           - armlab_vm_spec.instance_id == expected_instance_id
 
+- name: router lab cloud-init payload
+  hosts: localhost
+  gather_facts: false
+  vars_files:
+    - ../vars/router-labs/common.yml
+  vars:
+    router_lab_vm:
+      hostname: router-test-1
+      cloud_init_networks:
+        - name: wan
+          match_mac: 52:58:00:54:b0:ab
+          set_name: wan
+          addresses:
+            - 172.17.20.90/24
+          gateway4: 172.17.20.1
+          nameservers:
+            - 1.1.1.1
+            - 8.8.8.8
+        - name: lan
+          match_mac: 52:54:00:e6:22:c7
+          set_name: lan
+          addresses:
+            - 192.168.103.1/24
+          optional: true
+    expected_cloud_init_path: "{{ playbook_dir }}/../templates/router_lab_cloud_init_user_data.j2"
+  tasks:
+    - name: render the router lab cloud-init payload
+      ansible.builtin.set_fact:
+        router_lab_cloud_init_userdata: "{{ lookup('template', expected_cloud_init_path) }}"
+
+    - name: verify the router lab cloud-init payload
+      ansible.builtin.assert:
+        that:
+          - "'#cloud-config' in router_lab_cloud_init_userdata"
+          - "'hostname: router-test-1' in router_lab_cloud_init_userdata"
+          - "'qemu-guest-agent' in router_lab_cloud_init_userdata"
+          - "'apt-get install -y qemu-guest-agent' in router_lab_cloud_init_userdata"
+          - "'ssh_authorized_keys:' in router_lab_cloud_init_userdata"
+          - "'network:' in router_lab_cloud_init_userdata"
+          - "'wan:' in router_lab_cloud_init_userdata"
+          - "'match:' in router_lab_cloud_init_userdata"
+          - "'macaddress: 52:58:00:54:b0:ab' in router_lab_cloud_init_userdata"
+          - "'set-name: wan' in router_lab_cloud_init_userdata"
+          - "'172.17.20.90/24' in router_lab_cloud_init_userdata"
+          - "'gateway4: 172.17.20.1' in router_lab_cloud_init_userdata"
+          - "'nameservers:' in router_lab_cloud_init_userdata"
+          - "'1.1.1.1' in router_lab_cloud_init_userdata"
+          - "'lan:' in router_lab_cloud_init_userdata"
+          - "'macaddress: 52:54:00:e6:22:c7' in router_lab_cloud_init_userdata"
+          - "'set-name: lan' in router_lab_cloud_init_userdata"
+          - "'192.168.103.1/24' in router_lab_cloud_init_userdata"
+
+- name: dual-router topology spec
+  hosts: localhost
+  gather_facts: false
+  vars_files:
+    - ../vars/router-labs/common.yml
+    - ../vars/router-labs/dual-router.yml
+  tasks:
+    - name: verify the dual-router topology shape
+      ansible.builtin.assert:
+        that:
+          - router_lab_hypervisor_host == 'ronny-1'
+          - router_lab_vms | length == 3
+          - router_lab_vms | map(attribute='hostname') | list == ['router-test-1', 'router-test-2', 'router-peer-1']
+          - router_lab_vms[0].cloud_init_networks[0].addresses == ['172.17.20.90/24']
+          - router_lab_vms[0].cloud_init_networks[0].gateway4 == '172.17.20.1'
+          - router_lab_vms[0].cloud_init_networks | length == 3
+          - router_lab_vms[1].cloud_init_networks | length == 3
+          - router_lab_vms[2].cloud_init_networks | length == 2
+          - router_lab_vms[1].cloud_init_networks[0].dhcp4 is true
+          - router_lab_vms[0].cloud_init_networks[1].addresses == ['192.168.103.1/24']
+          - router_lab_vms[0].cloud_init_networks[2].addresses == ['192.168.100.1/24']
+          - router_lab_vms[1].cloud_init_networks[1].addresses == ['192.168.100.2/24']
+          - router_lab_vms[1].cloud_init_networks[2].addresses == ['192.168.102.1/24']
+
 - name: k8s node sizing path
   hosts: localhost
   gather_facts: false

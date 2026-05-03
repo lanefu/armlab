@@ -3,5 +3,21 @@ router_lab_hypervisor_host: ronny-1
 router_lab_vms:
   - hostname: router-test-1
     primary_bridge: bridge0
+    management_mac: 52:58:00:54:b0:ab
+    cloud_init_networks:
+      - name: wan
+        match_mac: 52:58:00:54:b0:ab
+        set_name: wan
+        addresses:
+          - "{{ router_lab_management_address }}/24"
+        gateway4: "{{ router_lab_management_gateway }}"
+        nameservers: "{{ router_lab_dns_nameservers }}"
+      - name: lan
+        match_mac: 52:54:00:e6:22:c7
+        set_name: lan
+        addresses:
+          - 192.168.103.1/24
+        optional: true
     extra_nics:
       - bridge: bridge1004
+        mac_address: 52:54:00:e6:22:c7

@@ -74,3 +74,27 @@ Interesting things in my scripts folder:
     ```
 - `scripts/fetch_kubeconfig.sh` - fetch kubeconfig from cluster cluster node and prepare for local use by updating API endpoint
 - `scripts/kubevirt/` - scripts I used for experimenting with kubevirt bootstrapping. Currently targeted at x86 instead of ARM :P
+
+## router experiments
+
+Router-lab provisioning now renders cloud-init locally instead of depending on
+the remote NoCloud URL. The router-lab playbook still lives in
+`playbooks/provision_router_test.yml`, but the generated payload is now built
+from the local workspace so the test-router path stays reproducible.
+
+The `dual-router` topology adds a second experimental router and a downstream
+peer so we can test DHCP handoff plus inter-router routing on the same lab
+boundary.
+
+The router experiment follows the live `lane` NetBox tenant and uses the
+`net-test0` through `net-test3` prefix family:
+
+- `192.168.100.0/24` on VLAN 1000 for the router transit segment
+- `192.168.101.0/24` on VLAN 1001 reserved for the production router test1 segment
+- `192.168.102.0/24` on VLAN 1002 for the second router LAN
+- `192.168.103.0/24` on VLAN 1003 for the first router LAN and DHCP client
+
+The routing ASN convention stays aligned with the home router stack:
+
+- router side: `64512`
+- armlab side: `64513`

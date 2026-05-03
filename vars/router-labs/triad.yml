@@ -8,14 +8,29 @@ router_lab_hypervisor_host: ronny-1
 router_lab_vms:
   - hostname: router-test-1
     primary_bridge: bridge0
+    cloud_init_networks:
+      - name: enp1s0
+        addresses:
+          - "{{ router_lab_management_address }}/24"
+        gateway4: "{{ router_lab_management_gateway }}"
+      - name: enp2s0
+        addresses:
+          - 192.168.103.1/24
+        optional: true
+      - name: enp3s0
+        addresses:
+          - 192.168.100.1/24
+        optional: true
     extra_nics:
       - bridge: bridge1004
       - bridge: bridge1005
   - hostname: router-peer-1
+    cloud_init_primary_dhcp: true
     primary_bridge: bridge0
     extra_nics:
       - bridge: bridge1004
   - hostname: router-peer-2
+    cloud_init_primary_dhcp: true
     primary_bridge: bridge0
     extra_nics:
       - bridge: bridge1005

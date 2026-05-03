@@ -1,0 +1,79 @@
+#cloud-config
+hostname: {{ router_lab_vm.hostname }}
+manage_etc_hosts: true
+ssh_pwauth: false
+disable_root: false
+runcmd:
+  - |
+      export DEBIAN_FRONTEND=noninteractive
+      if ! dpkg -s qemu-guest-agent >/dev/null 2>&1; then
+        apt-get update && apt-get install -y qemu-guest-agent || true
+      fi
+      systemctl enable --now qemu-guest-agent || true
+
+users:
+  - name: lane
+    gecos: lane
+    groups: [adm, sudo]
+    shell: /bin/bash
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    lock_passwd: true
+    ssh_authorized_keys:
+{% for ssh_key in router_lab_ssh_authorized_keys %}
+      - {{ ssh_key }}
+{% endfor %}
+
+network:
+  version: 2
+  ethernets:
+{% if router_lab_vm.cloud_init_networks is defined %}
+{% for nic in router_lab_vm.cloud_init_networks %}
+    {{ nic.name }}:
+{% if nic.match_mac is defined %}
+      match:
+        macaddress: {{ nic.match_mac }}
+{% elif nic.match_name is defined %}
+      match:
+        name: {{ nic.match_name }}
+{% endif %}
+{% if nic.set_name is defined %}
+      set-name: {{ nic.set_name }}
+{% endif %}
+{% if nic.dhcp4 is defined %}
+      dhcp4: {{ nic.dhcp4 | ternary('true', 'false') }}
+      dhcp6: {{ nic.dhcp4 | ternary('true', 'false') }}
+{% elif nic.addresses is defined %}
+      dhcp4: false
+      dhcp6: false
+{% endif %}
+{% if nic.addresses is defined %}
+      addresses:
+{% for address in nic.addresses %}
+        - {{ address }}
+{% endfor %}
+{% endif %}
+{% if nic.gateway4 is defined %}
+      gateway4: {{ nic.gateway4 }}
+{% endif %}
+{% if nic.nameservers is defined %}
+      nameservers:
+        addresses:
+{% for nameserver in nic.nameservers %}
+          - {{ nameserver }}
+{% endfor %}
+{% endif %}
+{% if nic.optional is defined %}
+      optional: {{ nic.optional | ternary('true', 'false') }}
+{% endif %}
+{% endfor %}
+{% else %}
+    enp1s0:
+      dhcp4: {{ router_lab_vm.cloud_init_primary_dhcp | default(true) | ternary('true', 'false') }}
+{% if router_lab_vm.extra_nics is defined %}
+{% for nic in router_lab_vm.extra_nics %}
+    enp{{ loop.index + 1 }}s0:
+      dhcp4: false
+      optional: true
+{% endfor %}
+{% endif %}
+{% endif %}

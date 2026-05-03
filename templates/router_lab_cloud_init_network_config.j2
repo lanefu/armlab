@@ -1,0 +1,46 @@
+network:
+  version: 2
+  ethernets:
+{% if router_lab_vm.cloud_init_networks is defined %}
+{% for nic in router_lab_vm.cloud_init_networks %}
+    {{ nic.name }}:
+{% if nic.match_mac is defined %}
+      match:
+        macaddress: {{ nic.match_mac }}
+{% elif nic.match_name is defined %}
+      match:
+        name: {{ nic.match_name }}
+{% endif %}
+{% if nic.set_name is defined %}
+      set-name: {{ nic.set_name }}
+{% endif %}
+{% if nic.dhcp4 is defined %}
+      dhcp4: {{ nic.dhcp4 | ternary('true', 'false') }}
+      dhcp6: {{ nic.dhcp4 | ternary('true', 'false') }}
+{% elif nic.addresses is defined %}
+      dhcp4: false
+      dhcp6: false
+{% endif %}
+{% if nic.addresses is defined %}
+      addresses:
+{% for address in nic.addresses %}
+        - {{ address }}
+{% endfor %}
+{% endif %}
+{% if nic.gateway4 is defined %}
+      routes:
+        - to: default
+          via: {{ nic.gateway4 }}
+{% endif %}
+{% if nic.nameservers is defined %}
+      nameservers:
+        addresses:
+{% for nameserver in nic.nameservers %}
+          - {{ nameserver }}
+{% endfor %}
+{% endif %}
+{% if nic.optional is defined %}
+      optional: {{ nic.optional | ternary('true', 'false') }}
+{% endif %}
+{% endfor %}
+{% endif %}

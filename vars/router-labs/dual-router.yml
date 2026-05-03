@@ -1,0 +1,56 @@
+---
+# Router-to-router lab topology:
+# - router-test-1 serves the first LAN and the downstream DHCP client path
+# - router-test-2 joins the transit link and serves a second LAN
+# - router-peer-1 is the DHCP client on router-test-1's LAN
+# NetBox design:
+# - tenant: lane
+# - net-test0 / VLAN 1000: transit between router-test-1 and router-test-2
+# - net-test1 / VLAN 1001: router-test-1 LAN and DHCP client segment
+# - net-test2 / VLAN 1002: router-test-2 LAN
+router_lab_hypervisor_host: ronny-1
+router_lab_vms:
+  - hostname: router-test-1
+    primary_bridge: bridge0
+    cloud_init_networks:
+      - name: enp1s0
+        addresses:
+          - "{{ router_lab_management_address }}/24"
+        gateway4: "{{ router_lab_management_gateway }}"
+      - name: enp2s0
+        addresses:
+          - 192.168.103.1/24
+        optional: true
+      - name: enp3s0
+        addresses:
+          - 192.168.100.1/24
+        optional: true
+    extra_nics:
+      - bridge: bridge1004
+      - bridge: bridge1005
+  - hostname: router-test-2
+    primary_bridge: bridge0
+    extra_nics:
+      - bridge: bridge1005
+      - bridge: bridge1006
+    cloud_init_networks:
+      - name: enp1s0
+        dhcp4: true
+      - name: enp2s0
+        addresses:
+          - 192.168.100.2/24
+        optional: true
+      - name: enp3s0
+        addresses:
+          - 192.168.102.1/24
+        optional: true
+  - hostname: router-peer-1
+    primary_bridge: bridge0
+    extra_nics:
+      - bridge: bridge1004
+    cloud_init_networks:
+      - name: enp1s0
+        dhcp4: true
+      - name: enp2s0
+        dhcp4: true
+        optional: true
