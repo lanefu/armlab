@@ -1,0 +1,43 @@
+---
+- name: build the effective armlab vm spec
+  ansible.builtin.set_fact:
+    armlab_vm_spec:
+      hostname: "{{ provision_kvm_guest_hostname }}"
+      image_folder: "{{ provision_kvm_guest_image_folder }}"
+      machine_folder: "{{ provision_kvm_guest_machine_folder }}"
+      base_image: "{{ provision_kvm_guest_base_image }}"
+      image_file: "{{ provision_kvm_guest_image_file | default(provision_kvm_guest_hostname ~ '.img.qcow2') }}"
+      image_format: "{{ provision_kvm_guest_image_format }}"
+      image_size: "{{ provision_kvm_guest_image_size }}"
+      smp: "{{ provision_kvm_guest_smp }}"
+      memory: "{{ provision_kvm_guest_memory }}"
+      network_bridge: "{{ provision_kvm_guest_network_bridge }}"
+      nocloud_url: "{{ provision_kvm_guest_nocloud_url }}"
+      instance_id: "{{ provision_kvm_guest_instance_id | default(provision_kvm_guest_hostname ~ provision_kvm_guest_instance_id_suffix) }}"
+
+- name: add optional vm spec fields when present
+  ansible.builtin.set_fact:
+    armlab_vm_spec: "{{ armlab_vm_spec | combine({'mac_address': provision_kvm_guest_mac_address}) }}"
+  when: provision_kvm_guest_mac_address is defined
+
+- name: add extra nics when present
+  ansible.builtin.set_fact:
+    armlab_vm_spec: "{{ armlab_vm_spec | combine({'extra_nics': provision_kvm_guest_extra_nics}) }}"
+  when: provision_kvm_guest_extra_nics is defined
+
+- name: add cloud-init userdata when present
+  ansible.builtin.set_fact:
+    armlab_vm_spec: "{{ armlab_vm_spec | combine({'cloud_init_userdata': provision_kvm_guest_cloud_init_userdata}) }}"
+  when: provision_kvm_guest_cloud_init_userdata is defined
+
+- name: add network facts when present
+  ansible.builtin.set_fact:
+    armlab_vm_spec: "{{ armlab_vm_spec | combine({
+      'ip4_address_summarized': provision_kvm_guest_ip4_address_summarized,
+      'ip4_network': provision_kvm_guest_ip4_network,
+      'ip4_gateway': provision_kvm_guest_ip4_gateway
+    }) }}"
+  when:
+    - provision_kvm_guest_ip4_address_summarized is defined
+    - provision_kvm_guest_ip4_network is defined
+    - provision_kvm_guest_ip4_gateway is defined

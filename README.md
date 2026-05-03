@@ -33,7 +33,8 @@ Installs qemu, libvirt, and cockpit for deploying virtual machines
 ### provision_k8s_nodes.yml
 
 Provision a pool of VMs on the VM hosts intended to be used later as k8s control plane
-and worker nodes
+and worker nodes. Shared VM defaults now live in `vars/armlab_vm_defaults.yml`; use
+`vars/local.yml` only for host-specific overrides.
 
 #### notes for me
 

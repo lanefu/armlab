@@ -1,10 +1,20 @@
+---
 # ansible-playbook -i inventory/hosts.yml playbooks/provision_vm_interactive.yml -u root --extra-vars @vars/local.yml
 
 - hosts:
     - "{{ hypervisor_host }}"
 
   vars_files:
+    - ../vars/armlab_vm_defaults.yml
     - ../vars/local.yml
+  vars:
+    vm_default_image_folder: "{{ provision_kvm_guest_image_folder }}"
+    vm_default_machine_folder: "{{ provision_kvm_guest_machine_folder }}"
+    vm_default_image_size: "{{ provision_kvm_guest_image_size }}"
+    vm_default_base_image: "{{ provision_kvm_guest_base_image }}"
+    vm_default_smp: "{{ provision_kvm_guest_smp }}"
+    vm_default_memory: "{{ provision_kvm_guest_memory }}"
+    vm_default_network_bridge: "{{ provision_kvm_guest_network_bridge }}"
   vars_prompt:
     - name: hypervisor_host
       default: ronny-3
@@ -16,30 +26,45 @@
       default: "{{ '52:58:00' | community.general.random_mac(seed=provision_kvm_guest_hostname) }}"
       private: false
     - name: provision_kvm_guest_image_folder
-      default: /mnt/cheapo/images
+      default: "{{ vm_default_image_folder }}"
       private: false
     - name: provision_kvm_guest_machine_folder
-      default: /mnt/cheapo/machines
+      default: "{{ vm_default_machine_folder }}"
       private: false
     - name: provision_kvm_guest_image_size
-      default: "40G"
+      default: "{{ vm_default_image_size }}"
       private: false
     - name: provision_kvm_guest_base_image
-      default: debian-13-generic-arm64-daily.qcow2
+      default: "{{ vm_default_base_image }}"
       private: false
     - name: provision_kvm_guest_smp
-      default: "2"
+      default: "{{ vm_default_smp }}"
       private: false
     - name: provision_kvm_guest_memory
-      default: "2048"
+      default: "{{ vm_default_memory }}"
       private: false
     - name: provision_kvm_guest_network_bridge
-      default: "default"
+      default: "{{ vm_default_network_bridge }}"
       private: false
 
   tasks:
-    - name: "Provision VM: { provision_kvm_guest_hostname }"
+    - name: normalize provisioning inputs
+      ansible.builtin.include_tasks: ../tasks/normalize_vm_spec.yml
+
+    - name: provision vm
       import_role:
         name: lanefu.armlab.provision_kvm_guest
-      tags:
-        - provision
+      vars:
+        provision_kvm_guest_hostname: "{{ armlab_vm_spec.hostname }}"
+        provision_kvm_guest_image_folder: "{{ armlab_vm_spec.image_folder }}"
+        provision_kvm_guest_machine_folder: "{{ armlab_vm_spec.machine_folder }}"
+        provision_kvm_guest_base_image: "{{ armlab_vm_spec.base_image }}"
+        provision_kvm_guest_image_file: "{{ armlab_vm_spec.image_file }}"
+        provision_kvm_guest_image_format: "{{ armlab_vm_spec.image_format }}"
+        provision_kvm_guest_image_size: "{{ armlab_vm_spec.image_size }}"
+        provision_kvm_guest_smp: "{{ armlab_vm_spec.smp }}"
+        provision_kvm_guest_memory: "{{ armlab_vm_spec.memory }}"
+        provision_kvm_guest_network_bridge: "{{ armlab_vm_spec.network_bridge }}"
+        provision_kvm_guest_nocloud_url: "{{ armlab_vm_spec.nocloud_url }}"
+        provision_kvm_guest_instance_id: "{{ armlab_vm_spec.instance_id }}"
+        provision_kvm_guest_mac_address: "{{ armlab_vm_spec.mac_address | default(omit) }}"

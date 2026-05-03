@@ -1,0 +1,90 @@
+---
+- name: interactive default vm spec
+  hosts: localhost
+  gather_facts: false
+  vars_files:
+    - ../vars/armlab_vm_defaults.yml
+    - ../vars/local.yml
+  vars:
+    provision_kvm_guest_hostname: vm-smoke-default
+    expected_instance_id: "vm-smoke-default{{ provision_kvm_guest_instance_id_suffix }}"
+  tasks:
+    - name: normalize the default interactive vm
+      ansible.builtin.include_tasks: ../tasks/normalize_vm_spec.yml
+
+    - name: verify the default interactive vm spec
+      ansible.builtin.assert:
+        that:
+          - armlab_vm_spec.hostname == provision_kvm_guest_hostname
+          - armlab_vm_spec.image_folder == provision_kvm_guest_image_folder
+          - armlab_vm_spec.machine_folder == provision_kvm_guest_machine_folder
+          - armlab_vm_spec.base_image == provision_kvm_guest_base_image
+          - armlab_vm_spec.image_format == provision_kvm_guest_image_format
+          - armlab_vm_spec.image_size == provision_kvm_guest_image_size
+          - armlab_vm_spec.smp == provision_kvm_guest_smp
+          - armlab_vm_spec.memory == provision_kvm_guest_memory
+          - armlab_vm_spec.network_bridge == provision_kvm_guest_network_bridge
+          - armlab_vm_spec.nocloud_url == provision_kvm_guest_nocloud_url
+          - armlab_vm_spec.instance_id == expected_instance_id
+
+- name: k8s node sizing path
+  hosts: localhost
+  gather_facts: false
+  vars_files:
+    - ../vars/armlab_vm_defaults.yml
+    - ../vars/local.yml
+  vars:
+    provision_kvm_guest_hostname: ksmall-1
+    provision_kvm_guest_machine_folder: "{{ provision_kvm_guest_machine_folder_k8s }}"
+    provision_kvm_guest_image_size: 25G
+    provision_kvm_guest_smp: 2
+    provision_kvm_guest_memory: 2000
+    expected_instance_id: "ksmall-1{{ provision_kvm_guest_instance_id_suffix }}"
+  tasks:
+    - name: normalize the k8s node vm
+      ansible.builtin.include_tasks: ../tasks/normalize_vm_spec.yml
+
+    - name: verify the k8s node spec
+      ansible.builtin.assert:
+        that:
+          - armlab_vm_spec.hostname == provision_kvm_guest_hostname
+          - armlab_vm_spec.machine_folder == provision_kvm_guest_machine_folder
+          - armlab_vm_spec.image_size == provision_kvm_guest_image_size
+          - armlab_vm_spec.smp == provision_kvm_guest_smp
+          - armlab_vm_spec.memory == provision_kvm_guest_memory
+          - armlab_vm_spec.base_image == provision_kvm_guest_base_image
+          - armlab_vm_spec.image_folder == provision_kvm_guest_image_folder
+          - armlab_vm_spec.instance_id == expected_instance_id
+
+- name: router lab single-node path
+  hosts: localhost
+  gather_facts: false
+  vars_files:
+    - ../vars/armlab_vm_defaults.yml
+    - ../vars/local.yml
+  vars:
+    provision_kvm_guest_hostname: router-test-1
+    provision_kvm_guest_machine_folder: /mnt/cheapo/machines/router_lab
+    provision_kvm_guest_image_size: 20G
+    provision_kvm_guest_smp: 2
+    provision_kvm_guest_memory: 2048
+    provision_kvm_guest_image_file: router-test-1.img.qcow2
+    provision_kvm_guest_extra_nics:
+      - bridge: bridge1004
+    expected_instance_id: "router-test-1{{ provision_kvm_guest_instance_id_suffix }}"
+  tasks:
+    - name: normalize the router lab vm
+      ansible.builtin.include_tasks: ../tasks/normalize_vm_spec.yml
+
+    - name: verify the router lab spec
+      ansible.builtin.assert:
+        that:
+          - armlab_vm_spec.hostname == provision_kvm_guest_hostname
+          - armlab_vm_spec.machine_folder == provision_kvm_guest_machine_folder
+          - armlab_vm_spec.image_file == provision_kvm_guest_image_file
+          - armlab_vm_spec.image_size == provision_kvm_guest_image_size
+          - armlab_vm_spec.smp == provision_kvm_guest_smp
+          - armlab_vm_spec.memory == provision_kvm_guest_memory
+          - armlab_vm_spec.network_bridge == provision_kvm_guest_network_bridge
+          - armlab_vm_spec.extra_nics == provision_kvm_guest_extra_nics
+          - armlab_vm_spec.instance_id == expected_instance_id

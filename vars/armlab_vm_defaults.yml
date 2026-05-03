@@ -1,0 +1,15 @@
+---
+# Shared baseline VM inputs for armlab provisioning.
+# Keep this file as the single default source; use vars/local.yml only for
+# site- or host-specific overrides.
+provision_kvm_guest_image_folder: /mnt/cheapo/images
+provision_kvm_guest_machine_folder: /mnt/cheapo/machines
+provision_kvm_guest_machine_folder_k8s: /mnt/cheapo/machines/ktest
+provision_kvm_guest_base_image: debian-13-generic-arm64-daily.qcow2
+provision_kvm_guest_image_format: qcow2
+provision_kvm_guest_image_size: 40G
+provision_kvm_guest_smp: 2
+provision_kvm_guest_memory: 2048
+provision_kvm_guest_network_bridge: bridge0
+provision_kvm_guest_nocloud_url: https://www.lane-fu.com/qemu-nocloud/lanecloud/
+provision_kvm_guest_instance_id_suffix: -uuid

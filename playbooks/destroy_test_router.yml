@@ -13,6 +13,15 @@
                 ], true)
           }}
 
+    - name: validate router lab destroy targets
+      ansible.builtin.assert:
+        that:
+          - router_lab_effective_vms | length > 0
+          - router_lab_effective_vms | map(attribute='hostname') | list | select('match', '^router-(test|peer)-[0-9]+$') | list | length == (router_lab_effective_vms | length)
+        fail_msg: >-
+          Refusing to destroy non-router-lab VM names. Use a router-lab vars file
+          with router-test-* or router-peer-* hostnames only.
+
     - name: destroy router lab guests
       include_role:
         name: lanefu.armlab.destroy_kvm_guest
