@@ -48,7 +48,7 @@ Destroy the VMs Above
 
 Bootstrap a k3s cluster
 
-### provison_vm.yml
+### provision_vm.yml
 
 playbook to deploy a single VM
 

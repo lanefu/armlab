@@ -16,9 +16,31 @@
       flannel-backend: "none"
 
   tasks:
-    - name: Provison whole cluster
+    - name: Provision whole cluster
       import_role:
         name: xanmanning.k3s
       tags:
-        - provison
+        - provision
         - k3s
+
+    - name: Increase inotify max_user_instances for Kubernetes
+      ansible.posix.sysctl:
+        name: fs.inotify.max_user_instances
+        value: "8192"
+        state: present
+        reload: yes
+      tags:
+        - provision
+        - k3s
+        - sysctl
+
+    - name: Increase inotify max_user_watches for Kubernetes
+      ansible.posix.sysctl:
+        name: fs.inotify.max_user_watches
+        value: "524288"
+        state: present
+        reload: yes
+      tags:
+        - provision
+        - k3s
+        - sysctl
