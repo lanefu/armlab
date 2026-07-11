@@ -1,0 +1,21 @@
+---
+# Second stage of the primary-router BGP demo.
+# This is intentionally LAN-only behind router-test-1's LAN on bridge1004:
+# no management NIC, no bridge0 attachment, and no source NAT dependency.
+# Provision after router-test-1 is configured so DHCP and the default route
+# come from the experimental router.
+router_lab_hypervisor_host: ronny-1
+router_lab_vms:
+  - hostname: router-peer-1
+    primary_bridge: bridge1004
+    management_mac: 52:54:00:e6:22:e7
+    cloud_init_networks:
+      - name: lan
+        match_mac: 52:54:00:e6:22:e7
+        set_name: lan
+        dhcp4: true
+        routes:
+          - to: 192.168.101.0/24
+            via: 192.168.103.1
+        optional: true
+    extra_nics: []

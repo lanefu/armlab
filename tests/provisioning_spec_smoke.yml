@@ -51,13 +51,18 @@
           addresses:
             - 192.168.103.1/24
           optional: true
-    expected_cloud_init_path: "{{ playbook_dir }}/../templates/router_lab_cloud_init_user_data.j2"
+    expected_cloud_init_user_data_path: "{{ playbook_dir }}/../templates/router_lab_cloud_init_user_data.j2"
+    expected_cloud_init_network_config_path: "{{ playbook_dir }}/../templates/router_lab_cloud_init_network_config.j2"
   tasks:
-    - name: render the router lab cloud-init payload
+    - name: render the router lab cloud-init user-data
       ansible.builtin.set_fact:
-        router_lab_cloud_init_userdata: "{{ lookup('template', expected_cloud_init_path) }}"
+        router_lab_cloud_init_userdata: "{{ lookup('template', expected_cloud_init_user_data_path) }}"
 
-    - name: verify the router lab cloud-init payload
+    - name: render the router lab cloud-init network config
+      ansible.builtin.set_fact:
+        router_lab_cloud_init_network_config: "{{ lookup('template', expected_cloud_init_network_config_path) }}"
+
+    - name: verify the router lab cloud-init user-data
       ansible.builtin.assert:
         that:
           - "'#cloud-config' in router_lab_cloud_init_userdata"
@@ -65,19 +70,28 @@
           - "'qemu-guest-agent' in router_lab_cloud_init_userdata"
           - "'apt-get install -y qemu-guest-agent' in router_lab_cloud_init_userdata"
           - "'ssh_authorized_keys:' in router_lab_cloud_init_userdata"
-          - "'network:' in router_lab_cloud_init_userdata"
-          - "'wan:' in router_lab_cloud_init_userdata"
-          - "'match:' in router_lab_cloud_init_userdata"
-          - "'macaddress: 52:58:00:54:b0:ab' in router_lab_cloud_init_userdata"
-          - "'set-name: wan' in router_lab_cloud_init_userdata"
-          - "'172.17.20.90/24' in router_lab_cloud_init_userdata"
-          - "'gateway4: 172.17.20.1' in router_lab_cloud_init_userdata"
-          - "'nameservers:' in router_lab_cloud_init_userdata"
-          - "'1.1.1.1' in router_lab_cloud_init_userdata"
-          - "'lan:' in router_lab_cloud_init_userdata"
-          - "'macaddress: 52:54:00:e6:22:c7' in router_lab_cloud_init_userdata"
-          - "'set-name: lan' in router_lab_cloud_init_userdata"
-          - "'192.168.103.1/24' in router_lab_cloud_init_userdata"
+          - "'network:' not in router_lab_cloud_init_userdata"
+
+    - name: verify the router lab cloud-init network config
+      ansible.builtin.assert:
+        that:
+          - "'network:' in router_lab_cloud_init_network_config"
+          - "'wan:' in router_lab_cloud_init_network_config"
+          - "'match:' in router_lab_cloud_init_network_config"
+          - "'macaddress: 52:58:00:54:b0:ab' in router_lab_cloud_init_network_config"
+          - "'set-name: wan' in router_lab_cloud_init_network_config"
+          - "'172.17.20.90/24' in router_lab_cloud_init_network_config"
+          - "'routes:' in router_lab_cloud_init_network_config"
+          - "'to: default' in router_lab_cloud_init_network_config"
+          - "'via: 172.17.20.1' in router_lab_cloud_init_network_config"
+          - "'nameservers:' in router_lab_cloud_init_network_config"
+          - "'1.1.1.1' in router_lab_cloud_init_network_config"
+          - "'8.8.8.8' in router_lab_cloud_init_network_config"
+          - "'lan:' in router_lab_cloud_init_network_config"
+          - "'macaddress: 52:54:00:e6:22:c7' in router_lab_cloud_init_network_config"
+          - "'set-name: lan' in router_lab_cloud_init_network_config"
+          - "'192.168.103.1/24' in router_lab_cloud_init_network_config"
+          - "'enp1s0:' not in router_lab_cloud_init_network_config"
 
 - name: dual-router topology spec
   hosts: localhost
@@ -92,9 +106,10 @@
           - router_lab_hypervisor_host == 'ronny-1'
           - router_lab_vms | length == 3
           - router_lab_vms | map(attribute='hostname') | list == ['router-test-1', 'router-test-2', 'router-peer-1']
+          - router_lab_vms | map(attribute='hostname') | list | unique | length == (router_lab_vms | length)
           - router_lab_vms[0].cloud_init_networks[0].addresses == ['172.17.20.90/24']
           - router_lab_vms[0].cloud_init_networks[0].gateway4 == '172.17.20.1'
-          - router_lab_vms[0].cloud_init_networks | length == 3
+          - router_lab_vms[0].cloud_init_networks | length == 4
           - router_lab_vms[1].cloud_init_networks | length == 3
           - router_lab_vms[2].cloud_init_networks | length == 2
           - router_lab_vms[1].cloud_init_networks[0].dhcp4 is true
@@ -102,6 +117,128 @@
           - router_lab_vms[0].cloud_init_networks[2].addresses == ['192.168.100.1/24']
           - router_lab_vms[1].cloud_init_networks[1].addresses == ['192.168.100.2/24']
           - router_lab_vms[1].cloud_init_networks[2].addresses == ['192.168.102.1/24']
+
+- name: single router topology spec
+  hosts: localhost
+  gather_facts: false
+  vars_files:
+    - ../vars/router-labs/common.yml
+  tasks:
+    - name: load single router stage
+      ansible.builtin.include_vars:
+        file: ../vars/router-labs/single.yml
+        name: single_router
+
+    - name: verify single router topology shape
+      ansible.builtin.assert:
+        that:
+          - single_router.router_lab_vms | length == 1
+          - single_router.router_lab_vms[0].hostname == 'router-test-1'
+          - single_router.router_lab_vms[0].primary_bridge == 'bridge0'
+          - single_router.router_lab_vms[0].extra_nics | length == 1
+          - single_router.router_lab_vms[0].cloud_init_networks | length == 2
+          - single_router.router_lab_vms[0].cloud_init_networks[0].addresses == [router_lab_management_address ~ '/24']
+          - single_router.router_lab_vms[0].cloud_init_networks[1].addresses == ['192.168.103.1/24']
+
+- name: bgp-demo staged topology specs
+  hosts: localhost
+  gather_facts: false
+  vars_files:
+    - ../vars/router-labs/common.yml
+  tasks:
+    - name: load bgp-demo router stage
+      ansible.builtin.include_vars:
+        file: ../vars/router-labs/bgp-demo-router.yml
+        name: bgp_demo_router
+
+    - name: load bgp-demo client stage
+      ansible.builtin.include_vars:
+        file: ../vars/router-labs/bgp-demo-client.yml
+        name: bgp_demo_client
+
+    - name: verify bgp-demo router stage shape
+      ansible.builtin.assert:
+        that:
+          - bgp_demo_router.router_lab_vms | length == 1
+          - bgp_demo_router.router_lab_vms[0].hostname == 'router-test-1'
+          - bgp_demo_router.router_lab_vms[0].cloud_init_networks | length == 4
+          - bgp_demo_router.router_lab_vms[0].cloud_init_networks[0].addresses == ['172.17.20.90/24']
+          - bgp_demo_router.router_lab_vms[0].cloud_init_networks[1].addresses == ['192.168.103.1/24']
+          - bgp_demo_router.router_lab_vms[0].cloud_init_networks[3].addresses == ['192.168.101.2/24']
+
+    - name: verify bgp-demo client is LAN-only
+      ansible.builtin.assert:
+        that:
+          - bgp_demo_client.router_lab_vms | length == 1
+          - bgp_demo_client.router_lab_vms[0].hostname == 'router-peer-1'
+          - bgp_demo_client.router_lab_vms[0].primary_bridge == 'bridge1004'
+          - bgp_demo_client.router_lab_vms[0].extra_nics | length == 0
+          - bgp_demo_client.router_lab_vms[0].cloud_init_networks | length == 1
+          - bgp_demo_client.router_lab_vms[0].cloud_init_networks[0].name == 'lan'
+          - bgp_demo_client.router_lab_vms[0].cloud_init_networks[0].dhcp4 is true
+
+- name: bgp-chain staged topology specs
+  hosts: localhost
+  gather_facts: false
+  vars_files:
+    - ../vars/router-labs/common.yml
+  tasks:
+    - name: load bgp-chain router stage
+      ansible.builtin.include_vars:
+        file: ../vars/router-labs/bgp-chain-routers.yml
+        name: bgp_chain_routers
+
+    - name: load bgp-chain client stage
+      ansible.builtin.include_vars:
+        file: ../vars/router-labs/bgp-chain-client.yml
+        name: bgp_chain_client
+
+    - name: verify bgp-chain router stage shape
+      ansible.builtin.assert:
+        that:
+          - bgp_chain_routers.router_lab_vms | length == 2
+          - bgp_chain_routers.router_lab_vms | map(attribute='hostname') | list == ['router-test-1', 'router-test-2']
+          - bgp_chain_routers.router_lab_vms[0].cloud_init_networks[0].addresses == ['172.17.20.90/24']
+          - bgp_chain_routers.router_lab_vms[0].cloud_init_networks[1].addresses == ['192.168.100.1/24']
+          - bgp_chain_routers.router_lab_vms[0].cloud_init_networks[2].addresses == ['192.168.103.1/24']
+          - bgp_chain_routers.router_lab_vms[0].cloud_init_networks[3].addresses == ['192.168.101.2/24']
+          - bgp_chain_routers.router_lab_vms[1].cloud_init_networks[0].addresses == ['172.17.20.91/24']
+          - bgp_chain_routers.router_lab_vms[1].cloud_init_networks[1].addresses == ['192.168.100.2/24']
+          - bgp_chain_routers.router_lab_vms[1].cloud_init_networks[2].addresses == ['192.168.102.1/24']
+
+    - name: verify bgp-chain client is behind router-test-2
+      ansible.builtin.assert:
+        that:
+          - bgp_chain_client.router_lab_vms | length == 1
+          - bgp_chain_client.router_lab_vms[0].hostname == 'router-peer-1'
+          - bgp_chain_client.router_lab_vms[0].primary_bridge == 'bridge1002'
+          - bgp_chain_client.router_lab_vms[0].extra_nics | length == 0
+          - bgp_chain_client.router_lab_vms[0].cloud_init_networks | length == 1
+          - bgp_chain_client.router_lab_vms[0].cloud_init_networks[0].name == 'lan'
+          - bgp_chain_client.router_lab_vms[0].cloud_init_networks[0].dhcp4 is true
+
+- name: empty router-lab topology safety
+  hosts: localhost
+  gather_facts: false
+  vars:
+    router_lab_vms: []
+  tasks:
+    - name: normalize an explicitly empty router lab topology
+      ansible.builtin.set_fact:
+        router_lab_effective_vms: >-
+          {{
+            router_lab_vms
+              | default([
+                  {
+                    'hostname': 'router-test-1'
+                  }
+                ])
+          }}
+
+    - name: verify the explicit empty topology stays empty
+      ansible.builtin.assert:
+        that:
+          - router_lab_effective_vms | length == 0
 
 - name: k8s node sizing path
   hosts: localhost

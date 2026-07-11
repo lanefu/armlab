@@ -86,6 +86,11 @@ The `dual-router` topology adds a second experimental router and a downstream
 peer so we can test DHCP handoff plus inter-router routing on the same lab
 boundary.
 
+The staged BGP chain topologies are the preferred multi-hop demo:
+`bgp-chain-routers` provisions `router-test-1` and statically managed
+`router-test-2` first, then `bgp-chain-client` adds a LAN-only client behind
+router-test-2 on `192.168.102.0/24`.
+
 The router experiment follows the live `lane` NetBox tenant and uses the
 `net-test0` through `net-test3` prefix family:
 
@@ -98,3 +103,4 @@ The routing ASN convention stays aligned with the home router stack:
 
 - router side: `64512`
 - armlab side: `64513`
+- two-router chain downstream router: `64514`

@@ -27,7 +27,7 @@
                     'extra_nics': [{'bridge': router_lab_extra_bridge_default}],
                     'cloud_init_primary_dhcp': true
                   }
-                ], true)
+                ])
           }}
 
     - name: validate router lab provision targets
@@ -35,17 +35,18 @@
         that:
           - router_lab_effective_vms | length > 0
           - router_lab_effective_vms | map(attribute='hostname') | list | select('match', '^router-(test|peer)-[0-9]+$') | list | length == (router_lab_effective_vms | length)
+          - router_lab_effective_vms | map(attribute='hostname') | list | unique | length == (router_lab_effective_vms | length)
         fail_msg: >-
           Refusing to provision non-router-lab VM names. Use a router-lab vars
           file with router-test-* or router-peer-* hostnames only.
 
-    - name: remove stale router lab network-config seed
+    - name: remove stale router lab cloud-init seeds
       ansible.builtin.file:
-        path: "{{ item.machine_folder | default(router_lab_machine_folder_default) }}/network-config"
+        path: "{{ item.0.machine_folder | default(router_lab_machine_folder_default ~ '/' ~ item.0.hostname) }}/{{ item.1 }}"
         state: absent
-      loop: "{{ router_lab_effective_vms }}"
+      loop: "{{ query('nested', router_lab_effective_vms, ['network-config', 'user-data', 'meta-data']) }}"
       loop_control:
-        label: "{{ item.hostname }}"
+        label: "{{ item.0.hostname }}:{{ item.1 }}"
 
     - name: provision router lab guests
       include_role:
@@ -53,7 +54,7 @@
       vars:
         router_lab_vm: "{{ item }}"
         provision_kvm_guest_hostname: "{{ item.hostname }}"
-        provision_kvm_guest_machine_folder: "{{ item.machine_folder | default(router_lab_machine_folder_default) }}"
+        provision_kvm_guest_machine_folder: "{{ item.machine_folder | default(router_lab_machine_folder_default ~ '/' ~ item.hostname) }}"
         provision_kvm_guest_base_image: "{{ item.base_image | default(router_lab_base_image_default) }}"
         provision_kvm_guest_image_file: "{{ item.image_file | default(item.hostname ~ '.img.qcow2') }}"
         provision_kvm_guest_image_format: "{{ item.image_format | default(router_lab_image_format_default) }}"
@@ -61,7 +62,7 @@
         provision_kvm_guest_smp: "{{ item.smp | default(router_lab_smp_default) }}"
         provision_kvm_guest_memory: "{{ item.memory | default(router_lab_memory_default) }}"
         provision_kvm_guest_network_bridge: "{{ item.primary_bridge | default(router_lab_network_bridge_default) }}"
-        provision_kvm_guest_mac_address: "{{ item.management_mac | default(omit) }}"
+        provision_kvm_guest_mac_address: "{{ item.management_mac | default('52:58:00' | community.general.random_mac(seed=item.hostname)) }}"
         provision_kvm_guest_extra_nics: "{{ item.extra_nics | default([{'bridge': router_lab_extra_bridge_default}]) }}"
         provision_kvm_guest_generate_cloud_init_iso: true
         provision_kvm_guest_interface_name: "{{ item.management_interface | default('wan') }}"

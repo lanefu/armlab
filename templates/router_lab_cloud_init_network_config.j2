@@ -31,6 +31,24 @@ network:
       routes:
         - to: default
           via: {{ nic.gateway4 }}
+{% if nic.routes is defined %}
+{% for route in nic.routes %}
+        - to: {{ route.to }}
+          via: {{ route.via }}
+{% if route.metric is defined %}
+          metric: {{ route.metric }}
+{% endif %}
+{% endfor %}
+{% endif %}
+{% elif nic.routes is defined %}
+      routes:
+{% for route in nic.routes %}
+        - to: {{ route.to }}
+          via: {{ route.via }}
+{% if route.metric is defined %}
+          metric: {{ route.metric }}
+{% endif %}
+{% endfor %}
 {% endif %}
 {% if nic.nameservers is defined %}
       nameservers:
@@ -43,4 +61,14 @@ network:
       optional: {{ nic.optional | ternary('true', 'false') }}
 {% endif %}
 {% endfor %}
+{% else %}
+    enp1s0:
+      dhcp4: {{ router_lab_vm.cloud_init_primary_dhcp | default(true) | ternary('true', 'false') }}
+{% if router_lab_vm.extra_nics is defined %}
+{% for nic in router_lab_vm.extra_nics %}
+    enp{{ loop.index + 1 }}s0:
+      dhcp4: true
+      optional: true
+{% endfor %}
+{% endif %}
 {% endif %}

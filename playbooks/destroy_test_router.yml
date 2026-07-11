@@ -1,5 +1,9 @@
 ---
 - hosts: "{{ hypervisor_host | default(router_lab_hypervisor_host | default('ronny-1')) }}"
+  vars_files:
+    - ../vars/router-labs/common.yml
+  vars:
+    router_lab_machine_folder_default: /mnt/cheapo/machines/router_lab
   tasks:
     - name: normalize router lab topology
       set_fact:
@@ -10,7 +14,7 @@
                   {
                     'hostname': test_vm_hostname | default('router-test-1')
                   }
-                ], true)
+                ])
           }}
 
     - name: validate router lab destroy targets
@@ -18,6 +22,7 @@
         that:
           - router_lab_effective_vms | length > 0
           - router_lab_effective_vms | map(attribute='hostname') | list | select('match', '^router-(test|peer)-[0-9]+$') | list | length == (router_lab_effective_vms | length)
+          - router_lab_effective_vms | map(attribute='hostname') | list | unique | length == (router_lab_effective_vms | length)
         fail_msg: >-
           Refusing to destroy non-router-lab VM names. Use a router-lab vars file
           with router-test-* or router-peer-* hostnames only.
@@ -30,3 +35,11 @@
       loop: "{{ router_lab_effective_vms }}"
       loop_control:
         label: "{{ item.hostname }}"
+
+    - name: remove stale router lab cloud-init seeds
+      ansible.builtin.file:
+        path: "{{ item.0.machine_folder | default(router_lab_machine_folder_default ~ '/' ~ item.0.hostname) }}/{{ item.1 }}"
+        state: absent
+      loop: "{{ query('nested', router_lab_effective_vms, ['network-config', 'user-data', 'meta-data']) }}"
+      loop_control:
+        label: "{{ item.0.hostname }}:{{ item.1 }}"
