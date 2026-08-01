@@ -104,3 +104,16 @@ The routing ASN convention stays aligned with the home router stack:
 - router side: `64512`
 - armlab side: `64513`
 - two-router chain downstream router: `64514`
+
+For the normal `clammy-ng` development loop, use the control wrapper rather
+than assembling the staged commands manually:
+
+```bash
+/Users/lane/GIT/EMPIRE/control/empirectl armlab router-lab develop one-router-bgp
+/Users/lane/GIT/EMPIRE/control/empirectl armlab router-lab repeat one-router-bgp 3
+```
+
+The first command provisions each stage twice, applies the isolated router
+playbook twice, verifies DHCP/BGP/reachability, and cleans up. Repeat mode
+starts each cycle from teardown and verifies that the same lifecycle succeeds
+repeatedly.

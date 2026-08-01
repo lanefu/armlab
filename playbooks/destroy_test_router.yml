@@ -43,3 +43,20 @@
       loop: "{{ query('nested', router_lab_effective_vms, ['network-config', 'user-data', 'meta-data']) }}"
       loop_control:
         label: "{{ item.0.hostname }}:{{ item.1 }}"
+
+    - name: verify router lab cloud-init seeds are absent
+      ansible.builtin.stat:
+        path: "{{ item.0.machine_folder | default(router_lab_machine_folder_default ~ '/' ~ item.0.hostname) }}/{{ item.1 }}"
+      loop: "{{ query('nested', router_lab_effective_vms, ['network-config', 'user-data', 'meta-data']) }}"
+      loop_control:
+        label: "{{ item.0.hostname }}:{{ item.1 }}"
+      register: router_lab_seed_state
+
+    - name: assert router lab cloud-init cleanup completed
+      ansible.builtin.assert:
+        that:
+          - not item.stat.exists
+        fail_msg: "router-lab cloud-init seed remains: {{ item.item.0.hostname }}/{{ item.item.1 }}"
+      loop: "{{ router_lab_seed_state.results }}"
+      loop_control:
+        label: "{{ item.item.0.hostname }}:{{ item.item.1 }}"

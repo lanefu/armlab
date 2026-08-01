@@ -176,6 +176,8 @@
           - bgp_demo_client.router_lab_vms[0].cloud_init_networks | length == 1
           - bgp_demo_client.router_lab_vms[0].cloud_init_networks[0].name == 'lan'
           - bgp_demo_client.router_lab_vms[0].cloud_init_networks[0].dhcp4 is true
+          - bgp_demo_client.router_lab_vms[0].cloud_init_networks[0].routes[0].to == '192.168.101.0/24'
+          - bgp_demo_client.router_lab_vms[0].cloud_init_networks[0].routes[0].via == '192.168.103.1'
 
 - name: bgp-chain staged topology specs
   hosts: localhost
@@ -216,6 +218,31 @@
           - bgp_chain_client.router_lab_vms[0].cloud_init_networks | length == 1
           - bgp_chain_client.router_lab_vms[0].cloud_init_networks[0].name == 'lan'
           - bgp_chain_client.router_lab_vms[0].cloud_init_networks[0].dhcp4 is true
+
+- name: router-lab repeatability invariants
+  hosts: localhost
+  gather_facts: false
+  vars_files:
+    - ../vars/router-labs/common.yml
+  tasks:
+    - name: load repeatability topologies
+      ansible.builtin.include_vars:
+        file: "../vars/router-labs/{{ item }}.yml"
+        name: "repeatability_{{ item | replace('-', '_') }}"
+      loop:
+        - bgp-demo-router
+        - bgp-demo-client
+
+    - name: verify repeatability topology names are safe and unique
+      ansible.builtin.assert:
+        that:
+          - item.router_lab_vms | map(attribute='hostname') | list | unique | length == (item.router_lab_vms | length)
+          - item.router_lab_vms | map(attribute='hostname') | list | select('match', '^router-(test|peer)-[0-9]+$') | list | length == (item.router_lab_vms | length)
+      loop:
+        - "{{ repeatability_bgp_demo_router }}"
+        - "{{ repeatability_bgp_demo_client }}"
+      loop_control:
+        label: "{{ item.router_lab_vms | map(attribute='hostname') | join(',') }}"
 
 - name: empty router-lab topology safety
   hosts: localhost
