@@ -28,7 +28,7 @@ kubectl get nodes
 ./scripts/install_kube-vip_arp.sh
 echo switching KUBECONFIG to VIP before cilium
 ./scripts/fetch_kubeconfig.sh ${CONTROL_NODE} ${VIP}
-cilium install
+cilium install --version v1.20.0 --set clustermesh.mcsapi.enabled=false
 
 kubectl -n kube-system get pods
 

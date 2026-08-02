@@ -1,0 +1,166 @@
+---
+# Join disposable AWS Spot instances to an already-running ArmLab cluster.
+# This playbook configures the WireGuard underlay first, then installs or
+# reconciles a K3s agent. It never changes existing nodes.
+- name: Validate AWS Spot worker inputs
+  hosts: localhost
+  gather_facts: false
+  become: false
+  tasks:
+    - name: Require an explicit worker group
+      ansible.builtin.assert:
+        that:
+          - groups['purpose_armlab_worker'] | default([]) | length > 0
+        fail_msg: >-
+          No purpose_armlab_worker hosts were supplied. Pass the EMPIRE Spot
+          dynamic inventory as a second -i source.
+    - name: Require protected runtime inputs
+      ansible.builtin.assert:
+        that:
+          - lookup('env', 'ARMLAB_K3S_SERVER_URL') | length > 0
+          - lookup('env', 'ARMLAB_K3S_NODE_TOKEN') | length > 0
+          - lookup('env', 'ARMLAB_SPOT_ROUTER_PUBLIC_KEY') | length > 0
+        fail_msg: >-
+          Set ARMLAB_K3S_SERVER_URL, ARMLAB_K3S_NODE_TOKEN, and
+          ARMLAB_SPOT_ROUTER_PUBLIC_KEY in the protected execution environment.
+
+- name: Configure and join ArmLab AWS Spot workers
+  hosts: purpose_armlab_worker
+  become: true
+  gather_facts: true
+  any_errors_fatal: true
+  vars:
+    armlab_spot_wireguard_interface: wg_armlab
+    armlab_spot_wireguard_address: "{{ hostvars[inventory_hostname].armlab_spot_wireguard_address | default(lookup('env', 'ARMLAB_SPOT_WORKER_ADDRESS') | default('10.254.0.2/30', true)) }}"
+    armlab_spot_wireguard_peer_address: "{{ hostvars[inventory_hostname].armlab_spot_wireguard_peer_address | default('10.254.0.1') }}"
+    armlab_spot_wireguard_allowed_ips: "{{ hostvars[inventory_hostname].armlab_spot_wireguard_allowed_ips | default('10.254.0.1/32,172.17.20.0/24') }}"
+    armlab_spot_wireguard_router_public_key: "{{ lookup('env', 'ARMLAB_SPOT_ROUTER_PUBLIC_KEY') }}"
+    armlab_spot_wireguard_router_endpoint: "{{ lookup('env', 'ARMLAB_SPOT_ROUTER_ENDPOINT') }}"
+  pre_tasks:
+    - name: Require a per-worker WireGuard address
+      ansible.builtin.assert:
+        that:
+          - armlab_spot_wireguard_address is match('^[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+/[0-9]+$')
+        fail_msg: >-
+          Each worker needs a unique armlab_spot_wireguard_address, supplied
+          by the generated inventory.
+    - name: Install WireGuard and diagnostics
+      ansible.builtin.apt:
+        name:
+          - wireguard-tools
+          - iproute2
+          - iputils-ping
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+    - name: Persist conservative forwarding settings for Cilium
+      ansible.builtin.copy:
+        dest: /etc/sysctl.d/99-armlab-spot-worker.conf
+        mode: '0644'
+        content: |
+          net.ipv4.ip_forward=1
+          net.ipv4.conf.all.rp_filter=0
+          net.ipv4.conf.default.rp_filter=0
+      notify: Reload sysctl
+    - name: Create WireGuard directory
+      ansible.builtin.file:
+        path: /etc/wireguard
+        state: directory
+        mode: '0700'
+    - name: Generate worker WireGuard key once
+      ansible.builtin.shell: wg genkey > /etc/wireguard/armlab_spot_private.key
+      args:
+        creates: /etc/wireguard/armlab_spot_private.key
+      no_log: true
+    - name: Read worker WireGuard private key
+      ansible.builtin.slurp:
+        src: /etc/wireguard/armlab_spot_private.key
+      register: armlab_spot_private_key
+      no_log: true
+    - name: Derive worker WireGuard public key
+      ansible.builtin.shell: >-
+        printf '%s' '{{ armlab_spot_private_key.content | b64decode | trim }}' | wg pubkey
+      register: armlab_spot_public_key
+      changed_when: false
+      no_log: true
+    - name: Store worker public key for bridge configuration
+      ansible.builtin.copy:
+        dest: /etc/wireguard/armlab_spot_public.key
+        mode: '0644'
+        content: "{{ armlab_spot_public_key.stdout | trim }}\n"
+  tasks:
+    - name: Render WireGuard transport with FRR-owned routes
+      ansible.builtin.copy:
+        dest: /etc/wireguard/{{ armlab_spot_wireguard_interface }}.conf
+        mode: '0600'
+        content: |
+          [Interface]
+          Address = {{ armlab_spot_wireguard_address }}
+          MTU = 1420
+          ListenPort = 51820
+          PrivateKey = {{ armlab_spot_private_key.content | b64decode | trim }}
+          Table = auto
+
+          [Peer]
+          PublicKey = {{ armlab_spot_wireguard_router_public_key }}
+          {% if armlab_spot_wireguard_router_endpoint | length > 0 %}
+          Endpoint = {{ armlab_spot_wireguard_router_endpoint }}
+          {% endif %}
+          AllowedIPs = {{ armlab_spot_wireguard_allowed_ips }}
+          PersistentKeepalive = 25
+      no_log: true
+    - name: Enable WireGuard transport
+      ansible.builtin.systemd:
+        name: wg-quick@{{ armlab_spot_wireguard_interface }}
+        enabled: true
+        state: restarted
+        daemon_reload: true
+    - name: Verify the WireGuard peer responds
+      ansible.builtin.command: >-
+        ping -c 3 -W 2 {{ armlab_spot_wireguard_peer_address | regex_replace('/[0-9]+$', '') }}
+      changed_when: false
+    - name: Check for a pre-existing k3s config
+      ansible.builtin.stat:
+        path: /etc/rancher/k3s/config.yaml
+      register: armlab_spot_k3s_config
+    - name: Remove stale role-managed k3s labels and taints before agent install
+      ansible.builtin.replace:
+        path: /etc/rancher/k3s/config.yaml
+        regexp: '(?ms)^(node-ip:.*\n|node-label|node-taint):?\n?(?:- .*\n)*'
+        replace: ''
+      when:
+        - ansible_facts.os_family == 'Debian'
+        - armlab_spot_k3s_config.stat.exists
+    - name: Reconcile the k3s agent bootstrap environment
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/k3s-agent.service.env
+        mode: '0600'
+        content: |
+          K3S_URL='{{ lookup('env', 'ARMLAB_K3S_SERVER_URL') }}'
+          K3S_TOKEN='{{ lookup('env', 'ARMLAB_K3S_NODE_TOKEN') }}'
+      no_log: true
+    - name: Install and configure the k3s agent
+      ansible.builtin.shell: >-
+        curl -sfL https://get.k3s.io | sh -s -
+      environment:
+        K3S_URL: "{{ lookup('env', 'ARMLAB_K3S_SERVER_URL') }}"
+        K3S_TOKEN: "{{ lookup('env', 'ARMLAB_K3S_NODE_TOKEN') }}"
+        INSTALL_K3S_EXEC: >-
+          agent
+          --node-ip {{ armlab_spot_wireguard_address | regex_replace('/[0-9]+$', '') }}
+          --disable-apiserver-lb
+          --node-label workload.armlab.lane-fu.com/pool=aws-spot
+          --node-label network.armlab.lane-fu.com/transport=wireguard
+          --node-label capacity.armlab.lane-fu.com/class=spot
+          --node-taint capacity.armlab.lane-fu.com/class=spot:NoSchedule
+      no_log: true
+    - name: Reload and restart the reconciled k3s agent
+      ansible.builtin.systemd:
+        name: k3s-agent
+        enabled: true
+        state: restarted
+        daemon_reload: true
+  handlers:
+    - name: Reload sysctl
+      ansible.builtin.command: sysctl --system
+      changed_when: false

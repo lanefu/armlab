@@ -15,4 +15,5 @@ helm upgrade --install traefik traefik/traefik \
   --set service.spec.loadBalancerClass=io.cilium/bgp-control-plane \
   --set service.spec.loadBalancerIP=${VIP}
 
-kubectl label service traefik -n ${NAMESPACE} bgp.armlab.io/service=true --overwrite
+kubectl label service traefik -n ${NAMESPACE} \
+  bgp.armlab.io/service=true bgp.armlab.io/lan-service=true --overwrite

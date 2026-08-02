@@ -1,0 +1,9 @@
+# Optional, dynamically populated inventory for ArmLab AWS Spot workers.
+# Combine this marker with the EMPIRE Spot inventory at runtime:
+#
+#   ansible-playbook \
+#     -i inventory/aws-spot-workers.yml \
+#     -i /Users/lane/GIT/EMPIRE/control/tools/aws/spot_inventory \
+#     playbooks/provision_external_workers.yml
+armlab_aws_spot_workers:
+  hosts: {}

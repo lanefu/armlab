@@ -1,0 +1,50 @@
+---
+# Opt-in Cilium BGP policy for AWS Spot workers.
+# Apply only after the WireGuard/FRR bridge is established.
+apiVersion: cilium.io/v2
+kind: CiliumBGPPeerConfig
+metadata:
+  name: armlab-aws-spot-bgp-peer
+  labels:
+    bgp.armlab.io/aws-spot: "true"
+spec:
+  families:
+    - afi: ipv4
+      safi: unicast
+      advertisements:
+        matchLabels:
+          bgp.armlab.io/aws-spot: "true"
+---
+apiVersion: cilium.io/v2
+kind: CiliumBGPClusterConfig
+metadata:
+  name: armlab-aws-spot-bgp
+spec:
+  nodeSelector:
+    matchLabels:
+      network.armlab.lane-fu.com/transport: wireguard
+  bgpInstances:
+    - name: armlab-aws-spot-router
+      localASN: 64514
+      peers:
+        - name: armlab-spot-virtual-router
+          peerASN: 64513
+          peerAddress: 10.254.0.1
+          peerConfigRef:
+            name: armlab-aws-spot-bgp-peer
+---
+apiVersion: cilium.io/v2
+kind: CiliumBGPAdvertisement
+metadata:
+  name: armlab-aws-spot-services
+  labels:
+    bgp.armlab.io/aws-spot: "true"
+spec:
+  advertisements:
+    - advertisementType: Service
+      service:
+        addresses:
+          - LoadBalancerIP
+      selector:
+        matchLabels:
+          bgp.armlab.io/aws-spot: "true"

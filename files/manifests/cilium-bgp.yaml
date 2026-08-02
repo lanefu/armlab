@@ -56,4 +56,4 @@ spec:
           - LoadBalancerIP
       selector:
         matchLabels:
-          bgp.armlab.io/service: "true"
+          bgp.armlab.io/lan-service: "true"

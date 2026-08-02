@@ -1,0 +1,23 @@
+---
+- name: External worker static contract
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Load external worker inventory marker
+      ansible.builtin.include_vars:
+        file: ../inventory/aws-spot-workers.yml
+        name: external_worker_inventory
+    - name: Verify the inventory marker is isolated
+      ansible.builtin.assert:
+        that:
+          - external_worker_inventory.armlab_aws_spot_workers.hosts == {}
+          - "'ronny_nodes' not in external_worker_inventory"
+    - name: Verify worker safety contract
+      ansible.builtin.assert:
+        that:
+          - "'Table = auto' in lookup('file', '../playbooks/provision_external_workers.yml')"
+          - "'capacity.armlab.lane-fu.com/class=spot:NoSchedule' in lookup('file', '../playbooks/provision_external_workers.yml')"
+          - "'https://get.k3s.io' in lookup('file', '../playbooks/provision_external_workers.yml')"
+          - "\"lookup('env', 'ARMLAB_K3S_NODE_TOKEN')\" in lookup('file', '../playbooks/provision_external_workers.yml')"
+          - "'home.yml' not in lookup('file', '../playbooks/provision_external_workers.yml')"
+          - "'full.yml' not in lookup('file', '../playbooks/provision_external_workers.yml')"
