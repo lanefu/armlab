@@ -1,0 +1,29 @@
+---
+# Export needed repo diffs and revoke worker identities before removal.
+- name: Remove only the temporary agent worker
+  hosts: "{{ agent_worker_hypervisor | default('ronny-2') }}"
+  remote_user: root
+  vars_files:
+    - ../vars/agent-worker-poc.yml
+  tasks:
+    - name: Validate exact teardown scope
+      ansible.builtin.assert:
+        that:
+          - inventory_hostname in ['ronny-1', 'ronny-2']
+          - agent_worker_name == 'empire-worker-poc'
+          - agent_worker_machine_folder == '/mnt/cheapo/machines/empire-worker-poc'
+    - name: Inspect the temporary VM
+      ansible.builtin.command: virsh domstate {{ agent_worker_name }}
+      register: worker_domain
+      failed_when: false
+      changed_when: false
+    - name: Stop the temporary VM
+      ansible.builtin.command: virsh destroy {{ agent_worker_name }}
+      when: worker_domain.rc == 0 and worker_domain.stdout | trim != 'shut off'
+    - name: Remove the temporary VM definition and NVRAM
+      ansible.builtin.command: virsh undefine {{ agent_worker_name }} --nvram
+      when: worker_domain.rc == 0
+    - name: Remove only its dedicated disk and cloud-init directory
+      ansible.builtin.file:
+        path: "{{ agent_worker_machine_folder }}"
+        state: absent

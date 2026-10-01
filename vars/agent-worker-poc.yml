@@ -1,0 +1,12 @@
+---
+# Temporary management-network worker; independent of Kubernetes.
+agent_worker_hypervisor: ronny-2
+agent_worker_name: empire-worker-poc
+agent_worker_mac: "52:58:00:ec:01:02"
+agent_worker_vcpus: 2
+agent_worker_memory_mb: 4096
+agent_worker_disk_size: 40G
+agent_worker_machine_folder: /mnt/cheapo/machines/empire-worker-poc
+agent_worker_bridge: bridge0
+agent_worker_dns: 172.17.20.1
+agent_worker_operator_public_key: "{{ lookup('file', lookup('env', 'HOME') ~ '/.ssh/lane_2021.key.pub') }}"

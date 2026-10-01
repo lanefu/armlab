@@ -1,0 +1,41 @@
+---
+- name: Provision the temporary agent worker
+  hosts: "{{ agent_worker_hypervisor | default('ronny-2') }}"
+  remote_user: root
+  vars_files:
+    - ../vars/armlab_vm_defaults.yml
+    - ../vars/agent-worker-poc.yml
+  tasks:
+    - name: Validate temporary worker scope
+      ansible.builtin.assert:
+        that:
+          - inventory_hostname in ['ronny-1', 'ronny-2']
+          - agent_worker_name == 'empire-worker-poc'
+          - agent_worker_machine_folder == '/mnt/cheapo/machines/empire-worker-poc'
+          - agent_worker_memory_mb | int <= 4096
+    - name: Provision dedicated worker guest
+      ansible.builtin.include_role:
+        name: lanefu.armlab.provision_kvm_guest
+      vars:
+        provision_kvm_guest_hostname: "{{ agent_worker_name }}"
+        provision_kvm_guest_machine_folder: "{{ agent_worker_machine_folder }}"
+        provision_kvm_guest_image_file: "{{ agent_worker_name }}.img.qcow2"
+        provision_kvm_guest_smp: "{{ agent_worker_vcpus }}"
+        provision_kvm_guest_memory: "{{ agent_worker_memory_mb }}"
+        provision_kvm_guest_image_size: "{{ agent_worker_disk_size }}"
+        provision_kvm_guest_network_bridge: "{{ agent_worker_bridge }}"
+        provision_kvm_guest_mac_address: "{{ agent_worker_mac }}"
+        provision_kvm_guest_generate_cloud_init_iso: true
+        provision_kvm_guest_cloud_init_userdata: "{{ lookup('template', playbook_dir ~ '/../templates/agent_worker_poc_user_data.j2') }}"
+        provision_kvm_guest_cloud_init_network_config: |
+          version: 2
+          ethernets:
+            management:
+              match:
+                macaddress: "{{ agent_worker_mac }}"
+              set-name: eth0
+              dhcp4: true
+              dhcp6: false
+              nameservers:
+                addresses: ["{{ agent_worker_dns }}"]
+                search: [angrybear.com]
