@@ -35,6 +35,10 @@ mkdir -p ~/.config/systemd/user/t3code.service.d
 cat > ~/.config/systemd/user/t3code.service.d/worker.conf <<'UNIT'
 [Service]
 Environment=PATH=/home/empire/.local/bin:/usr/local/bin:/usr/bin:/bin
+Environment=EMPIRE_ROOT=/home/empire/GIT/EMPIRE
+Environment=EMPIRE_GIT_ROOT=/home/empire/GIT
+Environment=EMPIRE_ENV_FILE=
+Environment=EMPIRECTL_TMP_ROOT=/tmp
 WorkingDirectory=/home/empire/GIT/EMPIRE/control
 UNIT
 cat > ~/.config/systemd/user/t3code.service.d/credentials.conf <<'UNIT'
