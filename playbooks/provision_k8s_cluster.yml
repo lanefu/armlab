@@ -7,7 +7,10 @@
     k3s_etcd_datastore: true
     #k3s_release_version: "v1.30.4+k3s1"
     k3s_server:
-      cluster-cidr: 172.31.0.0/16
+      cluster-cidr: 10.0.0.0/8
+      # Cilium cluster-pool owns Pod allocations; avoid a second allocator.
+      kube-controller-manager-arg:
+        - allocate-node-cidrs=false
       tls-san:
         - 172.17.20.40
       disable:

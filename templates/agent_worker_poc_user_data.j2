@@ -1,0 +1,38 @@
+hostname: {{ agent_worker_name }}
+manage_etc_hosts: true
+ssh_pwauth: false
+disable_root: true
+users:
+  - name: lane
+    groups: [adm, sudo]
+    shell: /bin/bash
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    lock_passwd: true
+    ssh_authorized_keys:
+      - {{ agent_worker_operator_public_key }}
+  - name: empire
+    shell: /bin/bash
+    lock_passwd: true
+    ssh_authorized_keys:
+      - {{ agent_worker_operator_public_key }}
+package_update: true
+packages:
+  - qemu-guest-agent
+  - curl
+  - ca-certificates
+  - git
+  - jq
+  - ripgrep
+  - python3
+  - python3-venv
+  - python3-pip
+  - openssh-client
+  - bind9-dnsutils
+  - netcat-openbsd
+  - unzip
+  - build-essential
+  - nodejs
+  - npm
+runcmd:
+  - [systemctl, enable, --now, qemu-guest-agent]
+  - [loginctl, enable-linger, empire]

@@ -28,7 +28,10 @@ kubectl get nodes
 ./scripts/install_kube-vip_arp.sh
 echo switching KUBECONFIG to VIP before cilium
 ./scripts/fetch_kubeconfig.sh ${CONTROL_NODE} ${VIP}
-cilium install --version v1.20.0 --set clustermesh.mcsapi.enabled=false
+cilium install --version v1.20.0 --set clustermesh.mcsapi.enabled=false \
+  --set ipam.mode=cluster-pool \
+  --set ipam.operator.clusterPoolIPv4PodCIDRList="{10.0.0.0/8}" \
+  --set ipam.operator.clusterPoolIPv4MaskSize=24
 
 kubectl -n kube-system get pods
 

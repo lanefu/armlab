@@ -1,0 +1,46 @@
+---
+- name: Configure temporary worker tools
+  hosts: agent_worker_poc
+  remote_user: lane
+  become: true
+  tasks:
+    - name: Wait for cloud-init package setup
+      ansible.builtin.command: cloud-init status --wait --format=json
+      register: cloud_init_status
+      failed_when: cloud_init_status.rc not in [0, 1]
+      changed_when: false
+    - name: Reject unexpected cloud-init failures
+      ansible.builtin.assert:
+        that:
+          - >-
+            (cloud_init_status.stdout | from_json).errors | length == 0 or
+            ((cloud_init_status.stdout | from_json).errors | length == 1 and
+             "Failed to install the following packages: {'dnsutils'}" in
+             (cloud_init_status.stdout | from_json).errors[0])
+        fail_msg: Unexpected cloud-init failure; inspect the guest before continuing.
+    - name: Install standard infrastructure tools
+      ansible.builtin.apt:
+        name: [ansible, awscli, gnupg, acl, bind9-dnsutils]
+        state: present
+        update_cache: true
+    - name: Fetch the official 1Password repository key
+      ansible.builtin.get_url:
+        url: https://downloads.1password.com/linux/keys/1password.asc
+        dest: /usr/share/keyrings/1password.asc
+        mode: '0644'
+    - name: Convert the repository key
+      ansible.builtin.command: gpg --dearmor --output /usr/share/keyrings/1password-archive-keyring.gpg /usr/share/keyrings/1password.asc
+      args:
+        creates: /usr/share/keyrings/1password-archive-keyring.gpg
+    - name: Configure the signed 1Password repository
+      ansible.builtin.apt_repository:
+        repo: deb [arch=arm64 signed-by=/usr/share/keyrings/1password-archive-keyring.gpg] https://downloads.1password.com/linux/debian/arm64 stable main
+        filename: 1password
+        state: present
+    - name: Install 1Password CLI
+      ansible.builtin.apt:
+        name: 1password-cli
+        state: present
+    - name: Ensure worker service persists after logout
+      ansible.builtin.command: loginctl enable-linger empire
+      changed_when: false
