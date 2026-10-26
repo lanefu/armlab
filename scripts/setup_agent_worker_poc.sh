@@ -4,6 +4,9 @@ set -euo pipefail
 [[ "$(id -un)" == empire ]] || { echo 'Run this as empire' >&2; exit 1; }
 umask 077
 EMPIRE_T3_VERSION="${EMPIRE_T3_VERSION:-0.1.2}"
+# Keep the worker client within one minor version of the Armlab API server.
+# Update this pin when the cluster version changes.
+EMPIRE_KUBECTL_VERSION="${EMPIRE_KUBECTL_VERSION:-v1.37.1}"
 mkdir -p ~/.local/bin ~/.ssh ~/GIT/EMPIRE
 if [[ ! -f ~/.ssh/id_ed25519 ]]; then
   ssh-keygen -q -t ed25519 -N '' -C empire-worker-poc -f ~/.ssh/id_ed25519
@@ -22,12 +25,16 @@ if [[ "$(~/.local/bin/t3 --version)" != "t3 v${EMPIRE_T3_VERSION}" ]]; then
     [[ "$(~/.local/bin/t3 --version)" == "t3 v${EMPIRE_T3_VERSION}" ]] || exit 1
   fi
 fi
-if [[ ! -x ~/.local/bin/kubectl ]]; then
-  version=$(curl -fsSL https://dl.k8s.io/release/stable.txt)
+kubectl_installed_version=""
+if [[ -x "$HOME/.local/bin/kubectl" ]]; then
+  kubectl_installed_version="$(~/.local/bin/kubectl version --client -o json \
+    | jq -r '.clientVersion.gitVersion // empty' 2>/dev/null || true)"
+fi
+if [[ "$kubectl_installed_version" != "$EMPIRE_KUBECTL_VERSION" ]]; then
   task_dir=$(mktemp -d)
   trap 'rm -rf "$task_dir"' EXIT
-  curl -fsSL "https://dl.k8s.io/release/${version}/bin/linux/arm64/kubectl" -o "$task_dir/kubectl"
-  curl -fsSL "https://dl.k8s.io/release/${version}/bin/linux/arm64/kubectl.sha256" -o "$task_dir/kubectl.sha256"
+  curl -fsSL "https://dl.k8s.io/release/${EMPIRE_KUBECTL_VERSION}/bin/linux/arm64/kubectl" -o "$task_dir/kubectl"
+  curl -fsSL "https://dl.k8s.io/release/${EMPIRE_KUBECTL_VERSION}/bin/linux/arm64/kubectl.sha256" -o "$task_dir/kubectl.sha256"
   (cd "$task_dir" && printf '%s  kubectl\n' "$(cat kubectl.sha256)" | sha256sum --check)
   install -m 0755 "$task_dir/kubectl" ~/.local/bin/kubectl
 fi
