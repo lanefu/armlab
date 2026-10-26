@@ -52,6 +52,20 @@ Bootstrap a k3s cluster
 
 playbook to deploy a single VM
 
+### Temporary agent worker
+
+Worker provisioning values are specific to the controller and belong in the
+ignored `vars/local.yml`. Copy the required keys from
+`vars/agent-worker-poc.example.yml`, replace its placeholders, set its mode to
+`0600`, and keep the local file private. Provision or destroy the worker with:
+
+```bash
+ansible-playbook playbooks/provision_agent_worker_poc.yml -e @vars/local.yml
+ansible-playbook playbooks/destroy_agent_worker_poc.yml -e @vars/local.yml
+```
+
+Do not commit `vars/local.yml`; it may contain other host-specific overrides.
+
 ## scripts
 
 I love ansible, but I'm not a purist. I'm extremely prone to lots of wrapper scripts as I experiment with things.

@@ -1,17 +1,16 @@
 ---
 # Export needed repo diffs and revoke worker identities before removal.
 - name: Remove only the temporary agent worker
-  hosts: "{{ agent_worker_hypervisor | default('ronny-2') }}"
+  hosts: "{{ agent_worker_hypervisor }}"
   remote_user: root
-  vars_files:
-    - ../vars/agent-worker-poc.yml
   tasks:
     - name: Validate exact teardown scope
       ansible.builtin.assert:
         that:
-          - inventory_hostname in ['ronny-1', 'ronny-2']
+          - inventory_hostname in agent_worker_allowed_hypervisors
+          - agent_worker_hypervisor == inventory_hostname
           - agent_worker_name == 'empire-worker-poc'
-          - agent_worker_machine_folder == '/mnt/cheapo/machines/empire-worker-poc'
+          - agent_worker_machine_folder == (agent_worker_machine_root ~ '/' ~ agent_worker_name)
     - name: Inspect the temporary VM
       ansible.builtin.command: virsh domstate {{ agent_worker_name }}
       register: worker_domain
