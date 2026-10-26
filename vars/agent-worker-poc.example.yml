@@ -1,0 +1,16 @@
+---
+# Copy these keys into ignored vars/local.yml and replace each placeholder.
+agent_worker_hypervisor: "replace-with-inventory-host"
+agent_worker_allowed_hypervisors:
+  - "replace-with-inventory-host"
+agent_worker_name: empire-worker-poc
+agent_worker_mac: "00:00:00:00:00:00"
+agent_worker_vcpus: 2
+agent_worker_memory_mb: 4096
+agent_worker_disk_size: 40G
+agent_worker_machine_root: /replace/with/storage/root
+agent_worker_machine_folder: "{{ agent_worker_machine_root }}/{{ agent_worker_name }}"
+agent_worker_bridge: "replace-with-management-bridge"
+agent_worker_dns: "192.0.2.53"
+agent_worker_dns_search_domain: "replace-with-search-domain"
+agent_worker_operator_public_key: "{{ lookup('file', lookup('env', 'HOME') ~ '/.ssh/id_ed25519.pub') }}"
