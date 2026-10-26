@@ -17,9 +17,9 @@ fi
 # `t3 update` can switch the installed binary before failing to restart the
 # user service in a non-login shell; service install below then updates the
 # unit and restarts it through the user's active systemd manager.
-if [[ "$(t3 --version)" != "t3 v${EMPIRE_T3_VERSION}" ]]; then
-  if ! t3 update "$EMPIRE_T3_VERSION" --channel stable --yes; then
-    [[ "$(t3 --version)" == "t3 v${EMPIRE_T3_VERSION}" ]] || exit 1
+if [[ "$(~/.local/bin/t3 --version)" != "t3 v${EMPIRE_T3_VERSION}" ]]; then
+  if ! ~/.local/bin/t3 update "$EMPIRE_T3_VERSION" --channel stable --yes; then
+    [[ "$(~/.local/bin/t3 --version)" == "t3 v${EMPIRE_T3_VERSION}" ]] || exit 1
   fi
 fi
 if [[ ! -x ~/.local/bin/kubectl ]]; then
