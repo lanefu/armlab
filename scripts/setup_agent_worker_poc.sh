@@ -3,6 +3,7 @@
 set -euo pipefail
 [[ "$(id -un)" == empire ]] || { echo 'Run this as empire' >&2; exit 1; }
 umask 077
+EMPIRE_T3_VERSION="${EMPIRE_T3_VERSION:-0.1.2}"
 mkdir -p ~/.local/bin ~/.ssh ~/GIT/EMPIRE
 if [[ ! -f ~/.ssh/id_ed25519 ]]; then
   ssh-keygen -q -t ed25519 -N '' -C empire-worker-poc -f ~/.ssh/id_ed25519
@@ -11,6 +12,15 @@ chmod 700 ~/.ssh
 if [[ ! -x ~/.local/bin/t3 ]]; then
   curl -fsSL https://t3.codes/install.sh -o /tmp/empire-t3-install.sh
   sh /tmp/empire-t3-install.sh
+fi
+# Keep reruns aligned with the scoped-pairing version used by this worker.
+# `t3 update` can switch the installed binary before failing to restart the
+# user service in a non-login shell; service install below then updates the
+# unit and restarts it through the user's active systemd manager.
+if [[ "$(t3 --version)" != "t3 v${EMPIRE_T3_VERSION}" ]]; then
+  if ! t3 update "$EMPIRE_T3_VERSION" --channel stable --yes; then
+    [[ "$(t3 --version)" == "t3 v${EMPIRE_T3_VERSION}" ]] || exit 1
+  fi
 fi
 if [[ ! -x ~/.local/bin/kubectl ]]; then
   version=$(curl -fsSL https://dl.k8s.io/release/stable.txt)
